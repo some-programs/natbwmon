@@ -1,0 +1,3 @@
+#!/bin/bash
+
+watchexec -r -s SIGKILL -e .go -- ./run "${@}"
