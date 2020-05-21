@@ -44,6 +44,7 @@ const clientsTpl = `
 <script>
 var t=setTimeout(function(){window.location.reload()}, 900);
 document.onkeypress = function(e){clearTimeout(t)};
+document.addEventListener('click', function(e){clearTimeout(t)});
 </script>
 </body>
 </html>`
