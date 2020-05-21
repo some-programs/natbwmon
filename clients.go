@@ -199,6 +199,14 @@ type Stat struct {
 	OutRate float64 `json:"out_rate"`
 }
 
+func (s Stat) HWAddrPrefix() string {
+	if len(s.HWAddr) >= len("xx:xx:xx") {
+		return s.HWAddr[0:8]
+	}
+	return ""
+
+}
+
 func (s Stat) InKb() string {
 	return fmtRate(s.InRate)
 }

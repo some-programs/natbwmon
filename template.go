@@ -33,7 +33,7 @@ const clientsTpl = `
       <td>{{ .Name }}</td>
       <td>{{ .InKb }}</td>
       <td>{{ .OutKb }}</td>
-      <td>{{ .HWAddr }}</td>
+      <td><a href="https://hwaddress.com/?q={{ .HWAddrPrefix }}">{{ .HWAddr }}</a></td>
     </tr>
     {{else}}
     <tr>
