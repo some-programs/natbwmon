@@ -101,6 +101,8 @@ func main() {
 
 	clients := NewClients()
 
+	// go pinger()
+
 	go func() {
 		ipt, err := NewIPTables()
 		if err != nil {
