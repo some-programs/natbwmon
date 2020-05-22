@@ -1,28 +1,43 @@
 # natbwmon
 
-Small web ui for visaulising up/down bandwidth for NAT clients.
+## what?
 
-Note that this is **only tested on UniFi Dream Machine Pro** with one specific
-port configuration so YMMV.
+- A Small web IO for visaulising up/down bandwidth for NAT clients.
 
-I just wrote this quickly to be able too get some basic idea of which
-addresses is using internet bbandwidth.
+## features
 
-The program generates and manages iptables rules to record per LAN client statistics.
+- Show bandwidth per lan client between router host and the internet, updated
+  muliple times per second on default settings.
+  
+- View tracked connections per client host.
 
-I wanted to run this on an UniFi Dream Machine Pro which doesnt officially
-support third party sofware so a static binary that does not link to anything
-outside itself was the primary target.
+## why?
 
-look at the [run](run) script to see how the application is compiled and
-transferred to the device. You just need go 1.14 or later for cross platform
-builds.
+- I wanted to run this on an UniFi Dream Machine Pro which doesnt officially
+  support third party sofware so a static binary that does not link to anything
+  outside itself was the primary target.
+  
+- This is **only tested on UniFi Dream Machine Pro** with one specific port
+  configuration so YMMV, should work on most linux NAT gateway setups though.
+  
+## how to use
 
-Execute `go run . -h` to see command line flags.
+- The only requirement is Go 1.14 or later for mative and cross platform
+  builds.
+
+- Look at the [run](run) script to see how the application is compiled and
+  transferred to the arm64 UDM pro device. 
+  
+
+- Execute `go run . -h` to see command line flags.
+
+- the `-clear` flag removes all iptables (used to count bytes per client) from
+  the system and exits.
 
 
 # TODO
 
-- remove hosts after no updates
+- remove hosts/rules after no updates.
+- remove iptables rules on program shutdown
 - (maybe) fancier web ui
-- (maybe) view conntrack
+
