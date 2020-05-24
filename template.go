@@ -51,9 +51,10 @@ document.addEventListener('click', function(e){clearTimeout(t)});
 
 // conntrackTemplateData .
 type conntrackTemplateData struct {
-	Title    string
-	FS       conntrack.FlowSlice
-	IPFilter string
+	Title       string
+	FS          conntrack.FlowSlice
+	IPFilter    string
+	OrderFilter string
 }
 
 const conntrackTpl = `
@@ -96,10 +97,10 @@ const conntrackTpl = `
       <td>{{ .Protocol.Name }}</td>
       <td>{{ .State }}</td>
       <td>{{ .TTL }}</td>
-      <td class="{{ ipclass .Original.Source }}">{{ .Original.Source }}:{{.Original.SPort}}</td>
-      <td class="{{ ipclass .Original.Destination }}">{{ .Original.Destination }}:{{.Original.DPort}}</td>
-      <td class="{{ ipclass .Reply.Source }}">{{ .Reply.Source }}:{{.Reply.SPort}}</td>
-      <td class="{{ ipclass .Reply.Destination}}">{{ .Reply.Destination }}:{{.Reply.DPort}}</td>
+      <td class="{{ ipclass .Original.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Original.Source }}">{{ .Original.Source }}</a>:{{ .Original.SPort }}</td>
+      <td class="{{ ipclass .Original.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Original.Destination }}">{{ .Original.Destination }}</a>:{{ .Original.DPort }}</td>
+      <td class="{{ ipclass .Reply.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Reply.Source }}">{{ .Reply.Source }}</a>:{{ .Reply.SPort }}</td>
+      <td class="{{ ipclass .Reply.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Reply.Destination }}">{{ .Reply.Destination }}</a>:{{ .Reply.DPort }}</td>
     </tr>
     {{else}}
     <tr>

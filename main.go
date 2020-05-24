@@ -295,9 +295,10 @@ func main() {
 		orderConntrack(fs, r)
 
 		data := conntrackTemplateData{
-			FS:       fs,
-			Title:    "conntrack",
-			IPFilter: r.URL.Query().Get("ip"),
+			FS:          fs,
+			Title:       "conntrack",
+			IPFilter:    r.URL.Query().Get("ip"),
+			OrderFilter: r.URL.Query().Get("o"),
 		}
 		err = conntrackTempl.Execute(w, &data)
 		if err != nil {
