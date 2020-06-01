@@ -10,8 +10,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/go-pa/flagutil"
@@ -49,7 +51,18 @@ func main() {
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+
+	go func() {
+		c := make(chan os.Signal)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		defer signal.Stop(c)
+
+		select {
+		case <-ctx.Done():
+		case <-c:
+			cancel()
+		}
+	}()
 
 	aliasesMap = make(map[string]string, len(flags.aliases))
 	for _, v := range flags.aliases {
@@ -327,14 +340,32 @@ func main() {
 		log.Fatal(hs.ListenAndServe())
 	}()
 
-	for {
-		time.Sleep(flags.iptablesReadDuration)
-		next, err := ipt.Stats()
-		if err != nil {
-			log.Fatal(err)
+	go func(ctx context.Context) {
+
+		ticker := time.NewTicker(flags.iptablesReadDuration)
+	loop:
+		for {
+			select {
+			case <-ticker.C:
+				next, err := ipt.Stats()
+				if err != nil {
+					log.Println(err)
+					continue loop
+				}
+				if err = clients.UpdateIPTables(next); err != nil {
+					log.Println(err)
+					continue loop
+				}
+			case <-ctx.Done():
+				return
+			}
 		}
-		if err = clients.UpdateIPTables(next); err != nil {
-			log.Fatal(err)
-		}
+	}(ctx)
+
+	<-ctx.Done()
+	log.Println("shutting down...")
+	if err := ipt.Delete(); err != nil {
+		log.Fatal(err)
 	}
+
 }
