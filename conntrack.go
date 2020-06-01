@@ -36,6 +36,17 @@ func (fs FlowSlice) FilterByIP(ip net.IP) FlowSlice {
 
 func (fs FlowSlice) OrderByProtoName() {
 	sort.SliceStable(fs, func(i, j int) bool {
+		in := fs[i].Protocol == nil
+		jn := fs[j].Protocol == nil
+		if in && jn {
+			return false
+		}
+		if in {
+			return true
+		}
+		if jn {
+			return false
+		}
 		return fs[i].Protocol.Name > fs[j].Protocol.Name
 	})
 }
