@@ -84,10 +84,15 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) error {
 		log.Println("got negative bytes count", s, count)
 		db = 0
 	}
-	perSecond := float64(time.Second) / float64(timestamp.Sub(count.updatedAt))
-	count.bytes = s.Bytes
-	count.avg.Add(float64(db) * perSecond)
-	count.updatedAt = timestamp
+	dur := float64(timestamp.Sub(count.updatedAt))
+	if dur > 0 {
+		perSecond := float64(time.Second) / dur
+		count.avg.Add(float64(db) * perSecond)
+		count.bytes = s.Bytes
+		count.updatedAt = timestamp
+	} else {
+		log.Println("no time difference, skipping updating rate counter", dur, db)
+	}
 	c.UpdatedAt = time.Now()
 	return nil
 }
