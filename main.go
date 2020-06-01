@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -10,13 +9,11 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-pa/flagutil"
-	"honnef.co/go/conntrack"
 )
 
 // all command line flags, global state for now
@@ -213,70 +210,47 @@ func main() {
 		}
 	})
 
-	filterConntrack := func(fs conntrack.FlowSlice, r *http.Request) conntrack.FlowSlice {
+	filterConntrack := func(fs FlowSlice, r *http.Request) FlowSlice {
 		q := r.URL.Query()
 		ip := q.Get("ip")
 		if ip != "" {
 			ip := net.ParseIP(ip)
-			fs = fs.Filter(func(f conntrack.Flow) bool {
-				if f.Original.Source.Equal(ip) {
-					return true
-				}
-				if f.Original.Destination.Equal(ip) {
-					return true
-				}
-				if f.Reply.Source.Equal(ip) {
-					return true
-				}
-				if f.Reply.Destination.Equal(ip) {
-					return true
-				}
-				return false
-			})
+			fs = fs.FilterByIP(ip)
 		}
 		return fs
 	}
 
-	orderConntrack := func(fs conntrack.FlowSlice, r *http.Request) {
+	orderConntrack := func(fs FlowSlice, r *http.Request) {
 		q := r.URL.Query()
 		ords := q["o"]
-
 		for i := len(ords) - 1; i >= 0; i-- {
 			orderBy := ords[i]
 			switch orderBy {
-
 			case "proto":
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].State > fs[j].State })
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].Protocol.Name > fs[j].Protocol.Name })
-
+				fs.OrderByState()
+				fs.OrderByProtoName()
 			case "ttl":
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].TTL > fs[j].TTL })
-
+				fs.OrderByTTL()
 			case "state":
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].TTL > fs[j].TTL })
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].Protocol.Name > fs[j].Protocol.Name })
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].State > fs[j].State })
-
+				fs.OrderByTTL()
+				fs.OrderByProtoName()
+				fs.OrderByState()
 			case "orig_src":
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].State > fs[j].State })
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].Original.SPort < fs[j].Original.SPort })
-				sort.SliceStable(fs, func(i, j int) bool { return bytes.Compare(fs[i].Original.Source, fs[j].Original.Source) < 0 })
-
+				fs.OrderByState()
+				fs.OrderByOriginalSPort()
+				fs.OrderByOriginalSource()
 			case "orig_dst":
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].State > fs[j].State })
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].Original.DPort < fs[j].Original.DPort })
-				sort.SliceStable(fs, func(i, j int) bool { return bytes.Compare(fs[i].Original.Destination, fs[j].Original.Destination) < 0 })
-
+				fs.OrderByState()
+				fs.OrderByOriginalDPort()
+				fs.OrderByOriginalDestination()
 			case "reply_src":
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].State > fs[j].State })
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].Reply.SPort < fs[j].Reply.SPort })
-				sort.SliceStable(fs, func(i, j int) bool { return bytes.Compare(fs[i].Reply.Source, fs[j].Reply.Source) < 0 })
-
+				fs.OrderByState()
+				fs.OrderByReplySPort()
+				fs.OrderByReplySource()
 			case "reply_dst":
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].State > fs[j].State })
-				sort.SliceStable(fs, func(i, j int) bool { return fs[i].Reply.DPort < fs[j].Reply.DPort })
-				sort.SliceStable(fs, func(i, j int) bool { return bytes.Compare(fs[i].Reply.Destination, fs[j].Reply.Destination) < 0 })
-
+				fs.OrderByState()
+				fs.OrderByReplyDPort()
+				fs.OrderByReplyDestination()
 			}
 		}
 	}
@@ -285,7 +259,7 @@ func main() {
 	http.HandleFunc("/conntrack", func(w http.ResponseWriter, r *http.Request) {
 		conntrackMu.Lock()
 		defer conntrackMu.Unlock()
-		fs, err := conntrack.Flows()
+		fs, err := Flows()
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(500)

@@ -204,14 +204,13 @@ func (s Stat) HWAddrPrefix() string {
 		return s.HWAddr[0:8]
 	}
 	return ""
-
 }
 
-func (s Stat) InKb() string {
+func (s Stat) InFmt() string {
 	return fmtRate(s.InRate)
 }
 
-func (s Stat) OutKb() string {
+func (s Stat) OutFmt() string {
 	return fmtRate(s.OutRate)
 }
 

@@ -1,9 +1,5 @@
 package main
 
-import (
-	"honnef.co/go/conntrack"
-)
-
 // clientsTemplateData .
 type clientsTemplateData struct {
 	Hosts []Stat
@@ -31,8 +27,8 @@ const clientsTpl = `
     <tr>
       <td><a href="/conntrack?ip={{.IP}}">{{ .IP }}</a></td>
       <td>{{ .Name }}</td>
-      <td>{{ .InKb }}</td>
-      <td>{{ .OutKb }}</td>
+      <td>{{ .InFmt }}</td>
+      <td>{{ .OutFmt }}</td>
       <td><a href="https://hwaddress.com/?q={{ .HWAddrPrefix }}">{{ .HWAddr }}</a></td>
     </tr>
     {{else}}
@@ -52,7 +48,7 @@ document.addEventListener('click', function(e){clearTimeout(t)});
 // conntrackTemplateData .
 type conntrackTemplateData struct {
 	Title       string
-	FS          conntrack.FlowSlice
+	FS          FlowSlice
 	IPFilter    string
 	OrderFilter string
 }
