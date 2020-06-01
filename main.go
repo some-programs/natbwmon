@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -46,6 +47,9 @@ func main() {
 	flag.DurationVar(&flags.resolveHostnamesDuration, "dns.delay", time.Minute, "delay between reresolving host names.")
 	flag.Var(&flags.aliases, "aliases", "hardware address aliases comma separated. ex: -aliases=00:00:00:00:00:00=nas.alias,00:00:00:00:00:01=server.alias")
 	flag.Parse()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	aliasesMap = make(map[string]string, len(flags.aliases))
 	for _, v := range flags.aliases {
@@ -100,54 +104,72 @@ func main() {
 
 	// go pinger()
 
-	go func() {
+	go func(ctx context.Context) {
 		ipt, err := NewIPTables()
 		if err != nil {
 			log.Fatal(err)
 		}
+		ticker := time.NewTicker(flags.iptablesRulesDuration)
 		for {
-			time.Sleep(flags.iptablesRulesDuration)
-			err := ipt.Update()
-			if err != nil {
-				log.Println(err)
-			}
-		}
-	}()
-
-	go func() {
-		for {
-			arps, err := arps()
-			if err != nil {
-				log.Println(err)
-				time.Sleep(flags.arpDuration)
-				continue
-			}
-			clients.UpdateArp(arps)
-			time.Sleep(flags.arpDuration)
-		}
-	}()
-
-	go func() {
-	loop:
-		for {
-			arps, err := arps()
-			if err != nil {
-				log.Println(err)
-				time.Sleep(flags.resolveHostnamesDuration)
-				continue loop
-			}
-			names := make(map[string]string, len(arps))
-			for _, v := range arps {
-				name, err := resolveHostname(v.IPAddress)
+			select {
+			case <-ticker.C:
+				err := ipt.Update()
 				if err != nil {
 					log.Println(err)
 				}
-				names[v.IPAddress] = name
+			case <-ctx.Done():
+				return
 			}
-			clients.UpdateNames(names)
-			time.Sleep(flags.resolveHostnamesDuration)
 		}
-	}()
+	}(ctx)
+
+	go func(ctx context.Context) {
+		update := func() {
+			arps, err := arps()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			clients.UpdateArp(arps)
+		}
+		update()
+		ticker := time.NewTicker(flags.arpDuration)
+		for {
+			select {
+			case <-ticker.C:
+				update()
+			case <-ctx.Done():
+				return
+			}
+		}
+	}(ctx)
+
+	go func(ctx context.Context) {
+		ticker := time.NewTicker(flags.resolveHostnamesDuration)
+	loop:
+		for {
+			select {
+			case <-ticker.C:
+				arps, err := arps()
+				if err != nil {
+					log.Println(err)
+					continue loop
+				}
+				names := make(map[string]string, len(arps))
+				for _, v := range arps {
+					name, err := resolveHostname(v.IPAddress)
+					if err != nil {
+						log.Println(err)
+					}
+					names[v.IPAddress] = name
+				}
+				clients.UpdateNames(names)
+
+			case <-ctx.Done():
+				return
+			}
+		}
+	}(ctx)
 
 	orderStats := func(s Stats, r *http.Request) {
 		s.OrderByIP()
