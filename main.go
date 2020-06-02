@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/go-pa/flagutil"
+	"github.com/thomasf/natbwmon/internal/mon"
 )
 
 // all command line flags, global state for now
@@ -32,8 +33,6 @@ var flags = struct {
 	resolveHostnamesDuration time.Duration
 	aliases                  flagutil.StringSliceFlag
 }{}
-
-var aliasesMap map[string]string
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -64,14 +63,13 @@ func main() {
 		}
 	}()
 
-	aliasesMap = make(map[string]string, len(flags.aliases))
 	for _, v := range flags.aliases {
 		ss := strings.SplitN(v, "=", 2)
 		if len(ss) != 2 {
 			fmt.Println("invalid alias specification:", v)
 			os.Exit(1)
 		}
-		aliasesMap[ss[0]] = ss[1]
+		mon.AliasesMap[ss[0]] = ss[1]
 	}
 
 	clientsTempl, err := template.New("").Parse(clientsTpl)
@@ -82,7 +80,7 @@ func main() {
 	conntrackTempl, err := template.New("").Funcs(
 		template.FuncMap{
 			"ipclass": func(ip net.IP) string {
-				if isPrivateIP(ip) {
+				if mon.IsPrivateIP(ip) {
 					return "failed"
 				}
 				return "success"
@@ -92,7 +90,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ipt, err := NewIPTables()
+	ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -113,12 +111,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	clients := NewClients()
+	clients := mon.NewClients(flags.avgSamples)
 
 	// go pinger()
 
 	go func(ctx context.Context) {
-		ipt, err := NewIPTables()
+		ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -138,11 +136,12 @@ func main() {
 
 	go func(ctx context.Context) {
 		update := func() {
-			arps, err := arps()
+			arps, err := mon.Arps()
 			if err != nil {
 				log.Println(err)
 				return
 			}
+			arps = arps.FilterDeviceName(flags.LANIface)
 			clients.UpdateArp(arps)
 		}
 		update()
@@ -163,14 +162,15 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				arps, err := arps()
+				arps, err := mon.Arps()
 				if err != nil {
 					log.Println(err)
 					continue loop
 				}
+				arps = arps.FilterDeviceName(flags.LANIface)
 				names := make(map[string]string, len(arps))
 				for _, v := range arps {
-					name, err := resolveHostname(v.IPAddress)
+					name, err := mon.ResolveHostname(v.IPAddress)
 					if err != nil {
 						log.Println(err)
 					}
@@ -184,7 +184,7 @@ func main() {
 		}
 	}(ctx)
 
-	orderStats := func(s Stats, r *http.Request) {
+	orderStats := func(s mon.Stats, r *http.Request) {
 		s.OrderByIP()
 		orderBy := r.URL.Query().Get("order_by")
 		switch orderBy {
@@ -199,7 +199,7 @@ func main() {
 		}
 	}
 
-	includeFilter := func(ss Stats, r *http.Request) Stats {
+	includeFilter := func(ss mon.Stats, r *http.Request) mon.Stats {
 		q := r.URL.Query()
 		IPs := q["ip"]
 		HWAddrs := q["hwaddr"]
@@ -208,7 +208,7 @@ func main() {
 		if len(IPs) == 0 && len(HWAddrs) == 0 && len(names) == 0 {
 			return ss
 		}
-		var res Stats
+		var res mon.Stats
 	loop:
 		for _, s := range ss {
 			for _, v := range IPs {
@@ -245,7 +245,7 @@ func main() {
 		}
 	})
 
-	filterConntrack := func(fs FlowSlice, r *http.Request) FlowSlice {
+	filterConntrack := func(fs mon.FlowSlice, r *http.Request) mon.FlowSlice {
 		q := r.URL.Query()
 		ip := q.Get("ip")
 		if ip != "" {
@@ -255,7 +255,7 @@ func main() {
 		return fs
 	}
 
-	orderConntrack := func(fs FlowSlice, r *http.Request) {
+	orderConntrack := func(fs mon.FlowSlice, r *http.Request) {
 		q := r.URL.Query()
 		ords := q["o"]
 		for i := len(ords) - 1; i >= 0; i-- {
@@ -294,7 +294,7 @@ func main() {
 	http.HandleFunc("/conntrack", func(w http.ResponseWriter, r *http.Request) {
 		conntrackMu.Lock()
 		defer conntrackMu.Unlock()
-		fs, err := Flows()
+		fs, err := mon.Flows()
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(500)

@@ -1,8 +1,10 @@
 package main
 
+import "github.com/thomasf/natbwmon/internal/mon"
+
 // clientsTemplateData .
 type clientsTemplateData struct {
-	Hosts []Stat
+	Hosts []mon.Stat
 	Title string
 }
 
@@ -48,7 +50,7 @@ document.addEventListener('click', function(e){clearTimeout(t)});
 // conntrackTemplateData .
 type conntrackTemplateData struct {
 	Title       string
-	FS          FlowSlice
+	FS          mon.FlowSlice
 	IPFilter    string
 	OrderFilter string
 }

@@ -1,4 +1,4 @@
-package main
+package mon
 
 import (
 	"log"
@@ -14,7 +14,7 @@ var (
 	pingsMu sync.Mutex
 )
 
-func pinger() {
+func Pinger() {
 
 	p, err := ping.New("0.0.0.0", "")
 	if err != nil {

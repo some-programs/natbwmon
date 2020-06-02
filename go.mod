@@ -1,4 +1,4 @@
-module github.com/thomasd/natbwmon
+module github.com/thomasf/natbwmon
 
 go 1.14
 

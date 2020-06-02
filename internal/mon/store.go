@@ -1,4 +1,4 @@
-package main
+package mon
 
 import (
 	"bytes"
@@ -24,19 +24,19 @@ type Client struct {
 	Name      string
 }
 
-func NewClient(ip string) *Client {
+func NewClient(ip string, avgSamples int) *Client {
 	now := time.Now()
-	name, err := resolveHostname(ip)
+	name, err := ResolveHostname(ip)
 	if err != nil {
 		log.Println(err)
 	}
 
 	return &Client{
 		in: &counter{
-			avg: movavg.NewSMA(flags.avgSamples),
+			avg: movavg.NewSMA(avgSamples),
 		},
 		out: &counter{
-			avg: movavg.NewSMA(flags.avgSamples),
+			avg: movavg.NewSMA(avgSamples),
 		},
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -55,7 +55,7 @@ func (c *Client) Stat() Stat {
 		ir = 0
 	}
 
-	alias := aliasesMap[c.HWAddr]
+	alias := AliasesMap[c.HWAddr]
 	name := c.Name
 	if alias != "" {
 		name = alias
@@ -112,11 +112,14 @@ func (c *Client) UpdateName(name string) error {
 type Clients struct {
 	cs map[string]*Client
 	mu sync.Mutex
+
+	avgSamples int
 }
 
-func NewClients() *Clients {
+func NewClients(avgSamples int) *Clients {
 	return &Clients{
-		cs: make(map[string]*Client, 0),
+		cs:         make(map[string]*Client, 0),
+		avgSamples: avgSamples,
 	}
 }
 
@@ -133,7 +136,7 @@ func (c *Clients) UpdateIPTables(stats IPTStats) error {
 		if ok {
 			client.UpdateIPTables(s, stats.CreatedAt)
 		} else {
-			client = NewClient(ip)
+			client = NewClient(ip, c.avgSamples)
 			client.UpdateIPTables(s, stats.CreatedAt)
 			c.cs[ip] = client
 		}
@@ -151,7 +154,7 @@ func (c *Clients) UpdateArp(as []parp.Entry) error {
 		if ok {
 			client.UpdateArp(a)
 		} else {
-			client = NewClient(ip)
+			client = NewClient(ip, c.avgSamples)
 			client.UpdateArp(a)
 			c.cs[ip] = client
 		}

@@ -1,4 +1,5 @@
-package main
+package mon
+
 
 import (
 	"fmt"
@@ -10,21 +11,25 @@ import (
 
 // IPTables .
 type IPTables struct {
-	ipt *iptables.IPTables
+	ipt   *iptables.IPTables
+	chain string
+	netif string
 }
 
-func NewIPTables() (*IPTables, error) {
+func NewIPTables(chain string, netif string) (*IPTables, error) {
 	ipt, err := iptables.New()
 	if err != nil {
 		return nil, err
 	}
 	return &IPTables{
-		ipt: ipt,
+		ipt:   ipt,
+		chain: chain,
+		netif: netif,
 	}, nil
 }
 
 func (i *IPTables) Stats() (IPTStats, error) {
-	stats, err := i.ipt.StructuredStats("filter", flags.chain)
+	stats, err := i.ipt.StructuredStats("filter", i.chain)
 	if err != nil {
 		return IPTStats{}, err
 	}
@@ -36,33 +41,34 @@ func (i *IPTables) Stats() (IPTStats, error) {
 
 // ClearChain clears and
 func (i *IPTables) ClearChain() error {
-	return i.ipt.ClearChain("filter", flags.chain)
+	return i.ipt.ClearChain("filter", i.chain)
 }
 
 // Update updates natbw rules according to the system arp list
 func (i *IPTables) Update() error {
-	as, err := arps()
+	as, err := Arps()
 	if err != nil {
 		return err
 	}
+	as = as.FilterDeviceName(i.netif)
 
-	ok, err := i.ipt.Exists("filter", "FORWARD", "-j", flags.chain)
+	ok, err := i.ipt.Exists("filter", "FORWARD", "-j", i.chain)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		err = i.ipt.Insert("filter", "FORWARD", 1, "-j", flags.chain)
+		err = i.ipt.Insert("filter", "FORWARD", 1, "-j", i.chain)
 		if err != nil {
 			return err
 		}
 	}
 aloop:
 	for _, a := range as {
-		if err := i.ipt.AppendUnique("filter", flags.chain, "-d", a.IPAddress, "-j", "RETURN"); err != nil {
+		if err := i.ipt.AppendUnique("filter", i.chain, "-d", a.IPAddress, "-j", "RETURN"); err != nil {
 			log.Println(err)
 			continue aloop
 		}
-		if err := i.ipt.AppendUnique("filter", flags.chain, "-s", a.IPAddress, "-j", "RETURN"); err != nil {
+		if err := i.ipt.AppendUnique("filter", i.chain, "-s", a.IPAddress, "-j", "RETURN"); err != nil {
 			log.Println(err)
 		}
 	}
@@ -77,7 +83,7 @@ func (i *IPTables) Delete() error {
 	}
 
 	for {
-		ok, err := i.ipt.Exists("filter", "FORWARD", "-j", flags.chain)
+		ok, err := i.ipt.Exists("filter", "FORWARD", "-j", i.chain)
 		if err != nil {
 			return err
 		}
@@ -85,13 +91,13 @@ func (i *IPTables) Delete() error {
 			break
 		}
 
-		err = i.ipt.Delete("filter", "FORWARD", "-j", flags.chain)
+		err = i.ipt.Delete("filter", "FORWARD", "-j", i.chain)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = i.ipt.DeleteChain("filter", flags.chain)
+	err = i.ipt.DeleteChain("filter", i.chain)
 	if err != nil {
 		return err
 	}

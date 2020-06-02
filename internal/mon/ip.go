@@ -1,4 +1,4 @@
-package main
+package mon
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ func init() {
 	}
 }
 
-func isPrivateIP(ip net.IP) bool {
+func IsPrivateIP(ip net.IP) bool {
 	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
 		return true
 	}

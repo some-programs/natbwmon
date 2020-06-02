@@ -1,4 +1,4 @@
-package main
+package mon
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func resolveHostname(ip string) (string, error) {
+func ResolveHostname(ip string) (string, error) {
 	names, err := net.LookupAddr(ip)
 	if err != nil {
 		var e *net.DNSError
