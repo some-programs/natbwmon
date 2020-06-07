@@ -123,7 +123,6 @@ loop:
 					if table.ColumnWidths[idx] < l {
 						table.ColumnWidths[idx] = l
 					}
-
 				}
 			}
 			table.Rows = rows
@@ -131,21 +130,6 @@ loop:
 		case <-ctx.Done():
 			break loop
 		}
-
-		// for {
-		// 	e := <-uiEvents
-		// 	switch e.ID {
-		// 	case "q", "<C-c>":
-		// 		return
-		// 	}
-		// }
-
-		// case "<Resize>":
-		// 		payload := e.Payload.(ui.Resize)
-		// 		grid.SetRect(0, 0, payload.Width, payload.Height)
-		// 		ui.Clear()
-		// 		ui.Render(grid)
-
 	}
 	cancel()
 	<-ctx.Done()
