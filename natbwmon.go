@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-pa/fenv"
 	"github.com/go-pa/flagutil"
 	"github.com/thomasf/natbwmon/internal/mon"
 )
@@ -47,6 +48,9 @@ func main() {
 	flag.DurationVar(&flags.arpDuration, "arp.delay", 5*time.Second, "delay between rereading arp table to update client hardware addresses")
 	flag.DurationVar(&flags.resolveHostnamesDuration, "dns.delay", time.Minute, "delay between reresolving host names.")
 	flag.Var(&flags.aliases, "aliases", "hardware address aliases comma separated. ex: -aliases=00:00:00:00:00:00=nas.alias,00:00:00:00:00:01=server.alias")
+
+	fenv.CommandLinePrefix("NATBWMON_")
+	fenv.MustParse()
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
