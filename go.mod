@@ -7,6 +7,7 @@ require (
 	github.com/coreos/go-iptables v0.4.5
 	github.com/digineo/go-ping v1.0.0
 	github.com/gizak/termui/v3 v3.1.0
+	github.com/go-pa/fenv v0.2.1
 	github.com/go-pa/flagutil v0.0.0-20200314122617-cbea97edecf2
 	github.com/mxmCherry/movavg v1.1.0
 	github.com/onsi/ginkgo v1.12.1 // indirect

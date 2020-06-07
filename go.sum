@@ -14,6 +14,8 @@ github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo
 github.com/gdamore/tcell v1.1.1/go.mod h1:K1udHkiR3cOtlpKG5tZPD5XxrF7v2y7lDq7Whcj+xkQ=
 github.com/gizak/termui/v3 v3.1.0 h1:ZZmVDgwHl7gR7elfKf1xc4IudXZ5qqfDh4wExk4Iajc=
 github.com/gizak/termui/v3 v3.1.0/go.mod h1:bXQEBkJpzxUAKf0+xq9MSWAvWZlE7c+aidmyFlkYTrY=
+github.com/go-pa/fenv v0.2.1 h1:tn90qzJUKmOo63i+zk3UhvdXI20wG0dQuycwdkHBRmI=
+github.com/go-pa/fenv v0.2.1/go.mod h1:ycrRZDTU+px88dBRxDTEL8cm+qiNTBBPSrpnWsrVnpg=
 github.com/go-pa/flagutil v0.0.0-20200314122617-cbea97edecf2 h1:MsCKWa6w0MdE6ablmLCbWtfQwqPDaE/QQp+qUY7IBVg=
 github.com/go-pa/flagutil v0.0.0-20200314122617-cbea97edecf2/go.mod h1:/I4K2s7JanYVFsdfq9fH+ns4hclhJP5UekD/NNhp/e0=
 github.com/golang/protobuf v1.2.0 h1:P3YflyNX/ehuJFLhxviNdFxQPkGK5cDcApsge1SqnvM=

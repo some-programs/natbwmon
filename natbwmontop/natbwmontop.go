@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,13 +15,15 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"github.com/go-pa/fenv"
 	"github.com/thomasf/natbwmon/internal/mon"
 )
 
-func readStats(ctx context.Context) (mon.Stats, error) {
+func readStats(ctx context.Context, baseurl string) (mon.Stats, error) {
+	url := fmt.Sprintf("%s/v1/stats/", baseurl)
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, "GET", "http://192.168.0.1:8833/v1/stats/", nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -48,6 +52,13 @@ func readStats(ctx context.Context) (mon.Stats, error) {
 }
 
 func main() {
+
+	var baseURL string
+
+	flag.StringVar(&baseURL, "url", "http://192.168.0.1:8833", "base url for natbwmon")
+	fenv.CommandLinePrefix("NATBWMONTOP_")
+	fenv.MustParse()
+	flag.Parse()
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -83,7 +94,7 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				stats, err := readStats(ctx)
+				stats, err := readStats(ctx, baseURL)
 				if err != nil {
 					log.Println(err)
 					continue loop
