@@ -96,7 +96,7 @@ func main() {
 	}(ctx)
 
 	uiEvents := ui.PollEvents()
-
+	orderBy := "n"
 loop:
 	for {
 		select {
@@ -105,6 +105,8 @@ loop:
 			case "q", "<C-c>":
 				break loop
 
+			case "r", "t", "h", "n", "i":
+				orderBy = e.ID
 			case "<Resize>":
 				payload := e.Payload.(ui.Resize)
 				table.SetRect(0, 0, payload.Width, payload.Height)
@@ -112,9 +114,20 @@ loop:
 				ui.Render(table)
 			}
 		case stats := <-statsCh:
-			stats.OrderByInRate()
+			switch orderBy {
+			case "r":
+				stats.OrderByInRate()
+			case "t":
+				stats.OrderByOutRate()
+			case "h":
+				stats.OrderByHWAddr()
+			case "n":
+				stats.OrderByName()
+			default:
+				stats.OrderByIP()
+			}
 			var rows [][]string
-			rows = append(rows, []string{"ip", "in rate", "out rate", "name", "hwaddr"})
+			rows = append(rows, []string{"ip", "rx rate", "tx rate", "name", "hwaddr"})
 			for _, v := range stats {
 				row := []string{v.IP, v.InFmt(), v.OutFmt(), v.Name, v.HWAddr}
 				rows = append(rows, row)
