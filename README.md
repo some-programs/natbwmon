@@ -31,13 +31,9 @@
 
 - Execute `go run . -h` to see command line flags.
 
-- the `-clear` flag removes all iptables (used to count bytes per client) from
-  the system and exits.
-
 
 # TODO
 
 - remove hosts/rules after no updates.
-- remove iptables rules on program shutdown
 - (maybe) fancier web ui
 
