@@ -65,6 +65,7 @@ func main() {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -81,6 +82,7 @@ func main() {
 	defer ui.Close()
 	table := widgets.NewTable()
 	table.TextStyle = ui.StyleClear
+	table.BorderStyle = ui.StyleClear
 	w, h := ui.TerminalDimensions()
 	table.SetRect(0, 0, w, h)
 	table.RowSeparator = false
@@ -90,14 +92,13 @@ func main() {
 
 	go func(ctx context.Context) {
 		ticker := time.NewTicker(200 * time.Millisecond)
-	loop:
 		for {
 			select {
 			case <-ticker.C:
 				stats, err := readStats(ctx, baseURL)
 				if err != nil {
-					log.Println(err)
-					continue loop
+					errCh <- err
+					return
 				}
 				statsCh <- stats
 			case <-ctx.Done():
@@ -153,8 +154,12 @@ loop:
 			ui.Render(table)
 		case <-ctx.Done():
 			break loop
+		case err := <-errCh:
+			ui.Clear()
+			ui.Close()
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	}
-	cancel()
-	<-ctx.Done()
+
 }
