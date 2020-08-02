@@ -139,7 +139,7 @@ loop:
 				stats.OrderByIP()
 			}
 			var rows [][]string
-			rows = append(rows, []string{"ip", "rx rate", "tx rate", "name", "hwaddr"})
+			rows = append(rows, []string{"ip (i)", "rx rate (r)", "tx rate (t)", "name (n)", "hwaddr (h)"})
 			for _, v := range stats {
 				row := []string{v.IP, v.InFmt(), v.OutFmt(), v.Name, v.HWAddr}
 				rows = append(rows, row)
