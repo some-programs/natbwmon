@@ -16,7 +16,7 @@ import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/go-pa/fenv"
-	"github.com/thomasf/natbwmon/internal/mon"
+	"github.com/some-programs/natbwmon/internal/mon"
 )
 
 func readStats(ctx context.Context, baseurl string) (mon.Stats, error) {

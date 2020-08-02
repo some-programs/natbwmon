@@ -18,7 +18,7 @@ import (
 
 	"github.com/go-pa/fenv"
 	"github.com/go-pa/flagutil"
-	"github.com/thomasf/natbwmon/internal/mon"
+	"github.com/some-programs/natbwmon/internal/mon"
 )
 
 // all command line flags, global state for now
