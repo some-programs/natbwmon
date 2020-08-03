@@ -18,6 +18,7 @@ import (
 
 	"github.com/go-pa/fenv"
 	"github.com/go-pa/flagutil"
+	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/mon"
 )
 
@@ -188,7 +189,7 @@ func main() {
 		}
 	}(ctx)
 
-	orderStats := func(s mon.Stats, r *http.Request) {
+	orderStats := func(s clientstats.Stats, r *http.Request) {
 		s.OrderByIP()
 		orderBy := r.URL.Query().Get("order_by")
 		switch orderBy {
@@ -203,7 +204,7 @@ func main() {
 		}
 	}
 
-	includeFilter := func(ss mon.Stats, r *http.Request) mon.Stats {
+	includeFilter := func(ss clientstats.Stats, r *http.Request) clientstats.Stats {
 		q := r.URL.Query()
 		IPs := q["ip"]
 		HWAddrs := q["hwaddr"]
@@ -212,7 +213,7 @@ func main() {
 		if len(IPs) == 0 && len(HWAddrs) == 0 && len(names) == 0 {
 			return ss
 		}
-		var res mon.Stats
+		var res clientstats.Stats
 	loop:
 		for _, s := range ss {
 			for _, v := range IPs {

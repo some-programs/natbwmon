@@ -1,17 +1,15 @@
 package mon
 
 import (
-	"bytes"
 	"fmt"
 	"log"
-	"net"
-	"sort"
 	"sync"
 	"time"
 
 	parp "github.com/ItsJimi/go-arp"
 	"github.com/coreos/go-iptables/iptables"
 	"github.com/mxmCherry/movavg"
+	"github.com/some-programs/natbwmon/internal/clientstats"
 )
 
 type Client struct {
@@ -45,7 +43,7 @@ func NewClient(ip string, avgSamples int) *Client {
 	}
 }
 
-func (c *Client) Stat() Stat {
+func (c *Client) Stat() clientstats.Stat {
 	or := c.out.avg.Avg()
 	if or < 0.0001 {
 		or = 0
@@ -60,7 +58,7 @@ func (c *Client) Stat() Stat {
 	if alias != "" {
 		name = alias
 	}
-	return Stat{
+	return clientstats.Stat{
 		IP:      c.IP,
 		HWAddr:  c.HWAddr,
 		Name:    name,
@@ -177,11 +175,11 @@ func (c *Clients) UpdateNames(names map[string]string) error {
 	return nil
 }
 
-func (c *Clients) Stats() Stats {
+func (c *Clients) Stats() clientstats.Stats {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	var ss []Stat
+	var ss []clientstats.Stat
 	for _, client := range c.cs {
 		ss = append(ss, client.Stat())
 	}
@@ -196,77 +194,4 @@ type counter struct {
 
 func (c counter) String() string {
 	return fmt.Sprintf("bytes:%v avg:%.2f updatedAt:%v", c.bytes, c.avg.Avg(), c.updatedAt)
-}
-
-// Stat
-type Stat struct {
-	IP      string  `json:"ip"`
-	Name    string  `json:"name"`
-	HWAddr  string  `json:"hwaddr"`
-	InRate  float64 `json:"in_rate"`
-	OutRate float64 `json:"out_rate"`
-}
-
-func (s Stat) HWAddrPrefix() string {
-	if len(s.HWAddr) >= len("xx:xx:xx") {
-		return s.HWAddr[0:8]
-	}
-	return ""
-}
-
-func (s Stat) InFmt() string {
-	return fmtRate(s.InRate)
-}
-
-func (s Stat) OutFmt() string {
-	return fmtRate(s.OutRate)
-}
-
-func fmtRate(b float64) string {
-	if b < 0.01 {
-		return ""
-	}
-	const unit = 1024.0
-	if b < unit {
-		return fmt.Sprintf("%.2f B/s", b)
-	}
-	div, exp := int64(unit), 0
-	for n := b / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.2f %ciB/s",
-		float64(b)/float64(div), "KMGTPE"[exp])
-}
-
-type Stats []Stat
-
-func (s Stats) OrderByIP() {
-	sort.SliceStable(s, func(i, j int) bool {
-		return bytes.Compare(net.ParseIP(s[i].IP), net.ParseIP(s[j].IP)) < 0
-	})
-}
-
-func (s Stats) OrderByInRate() {
-	sort.SliceStable(s, func(i, j int) bool { return s[i].InRate > s[j].InRate })
-}
-
-func (s Stats) OrderByOutRate() {
-	sort.SliceStable(s, func(i, j int) bool { return s[i].OutRate > s[j].OutRate })
-}
-
-func (s Stats) OrderByHWAddr() {
-	sort.SliceStable(s, func(i, j int) bool { return s[i].HWAddr < s[j].HWAddr })
-}
-
-func (s Stats) OrderByName() {
-	sort.SliceStable(s, func(i, j int) bool {
-		if s[i].Name == "" && s[j].Name != "" {
-			return false
-		}
-		if s[i].Name != "" && s[j].Name == "" {
-			return true
-		}
-		return s[i].Name < s[j].Name
-	})
 }

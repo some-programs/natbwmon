@@ -1,10 +1,13 @@
 package main
 
-import "github.com/some-programs/natbwmon/internal/mon"
+import (
+	"github.com/some-programs/natbwmon/internal/clientstats"
+	"github.com/some-programs/natbwmon/internal/mon"
+)
 
 // clientsTemplateData .
 type clientsTemplateData struct {
-	Hosts []mon.Stat
+	Hosts []clientstats.Stat
 	Title string
 }
 

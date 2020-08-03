@@ -16,10 +16,10 @@ import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/go-pa/fenv"
-	"github.com/some-programs/natbwmon/internal/mon"
+	"github.com/some-programs/natbwmon/internal/clientstats"
 )
 
-func readStats(ctx context.Context, baseurl string) (mon.Stats, error) {
+func readStats(ctx context.Context, baseurl string) (clientstats.Stats, error) {
 	url := fmt.Sprintf("%s/v1/stats/", baseurl)
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
@@ -40,7 +40,7 @@ func readStats(ctx context.Context, baseurl string) (mon.Stats, error) {
 		log.Println(err)
 		return nil, err
 	}
-	var stats mon.Stats
+	var stats clientstats.Stats
 	err = json.Unmarshal(data, &stats)
 	if err != nil {
 		log.Println(err)
@@ -52,7 +52,6 @@ func readStats(ctx context.Context, baseurl string) (mon.Stats, error) {
 }
 
 func main() {
-
 	var baseURL string
 
 	flag.StringVar(&baseURL, "url", "http://192.168.0.1:8833", "base url for natbwmon")
@@ -88,7 +87,7 @@ func main() {
 	table.RowSeparator = false
 	table.ColumnWidths = []int{5, 5, 5, 5, 5}
 
-	statsCh := make(chan mon.Stats, 0)
+	statsCh := make(chan clientstats.Stats, 0)
 
 	go func(ctx context.Context) {
 		ticker := time.NewTicker(200 * time.Millisecond)
