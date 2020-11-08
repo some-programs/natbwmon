@@ -30,10 +30,3 @@
   
 
 - Execute `go run . -h` to see command line flags.
-
-
-# TODO
-
-- remove hosts/rules after no updates.
-- (maybe) fancier web ui
-
