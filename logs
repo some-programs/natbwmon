@@ -1,0 +1,12 @@
+#!/bin/bash
+
+CONTROLLER=192.168.0.1
+USER=root
+SSHC="${USER}@${CONTROLLER}"
+
+ssh ${SSHC} killall -q natbwmon-arm64
+
+set -e
+
+ssh ${SSHC} rm -f /tmp/natbwmon-arm64
+ssh ${SSHC} tail -n 100 -f /tmp/natbwmon.log | jq
