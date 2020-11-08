@@ -1,12 +1,11 @@
 package mon
 
-
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/coreos/go-iptables/iptables"
+	"github.com/some-programs/natbwmon/internal/log"
 )
 
 // IPTables .
@@ -65,11 +64,11 @@ func (i *IPTables) Update() error {
 aloop:
 	for _, a := range as {
 		if err := i.ipt.AppendUnique("filter", i.chain, "-d", a.IPAddress, "-j", "RETURN"); err != nil {
-			log.Println(err)
+			log.Error().Err(err).Msg("")
 			continue aloop
 		}
 		if err := i.ipt.AppendUnique("filter", i.chain, "-s", a.IPAddress, "-j", "RETURN"); err != nil {
-			log.Println(err)
+			log.Error().Err(err).Msg("")
 		}
 	}
 	return nil
@@ -79,7 +78,7 @@ aloop:
 func (i *IPTables) Delete() error {
 	err := i.ClearChain()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("delete iptables")
 	}
 
 	for {

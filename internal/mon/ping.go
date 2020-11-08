@@ -1,12 +1,12 @@
 package mon
 
 import (
-	"log"
 	"net"
 	"sync"
 	"time"
 
 	ping "github.com/digineo/go-ping"
+	"github.com/some-programs/natbwmon/internal/log"
 )
 
 var (
@@ -21,7 +21,13 @@ func Pinger() {
 		panic(err)
 	}
 	for {
-		log.Println(p.Ping(&net.IPAddr{IP: net.ParseIP("1.1.1.1")}, time.Second))
+		d, err := p.Ping(&net.IPAddr{IP: net.ParseIP("1.1.1.1")}, time.Second)
+		if err != nil {
+			log.Warn().Err(err).Msg("ping error")
+		} else {
+			log.Info().Stringer("duration", d).Msg("ping reply")
+		}
+
 		time.Sleep(2 * time.Second)
 	}
 

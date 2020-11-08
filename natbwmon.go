@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -19,6 +18,7 @@ import (
 	"github.com/go-pa/fenv"
 	"github.com/go-pa/flagutil"
 	"github.com/some-programs/natbwmon/internal/clientstats"
+	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
 )
 
@@ -37,8 +37,10 @@ var flags = struct {
 }{}
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
+	var logFlags log.Flags
+
+	logFlags.Register(flag.CommandLine)
 	flag.BoolVar(&flags.clear, "clear", false, "just clear iptables rules and chains and exit")
 	flag.StringVar(&flags.LANIface, "lan.if", "br0", "The 'LAN' interface")
 	flag.StringVar(&flags.listen, "listen", "0.0.0.0:8833", "where web server listens")
@@ -53,6 +55,10 @@ func main() {
 	fenv.CommandLinePrefix("NATBWMON_")
 	fenv.MustParse()
 	flag.Parse()
+
+	logFlags.Setup()
+
+	log.Debug().Msg("application starting")
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -79,7 +85,7 @@ func main() {
 
 	clientsTempl, err := template.New("").Parse(clientsTpl)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("parse templates")
 	}
 
 	conntrackTempl, err := template.New("").Funcs(
@@ -92,16 +98,16 @@ func main() {
 			}},
 	).Parse(conntrackTpl)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
 
 	ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
 
 	if err := ipt.Delete(); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
 
 	if flags.clear {
@@ -109,11 +115,11 @@ func main() {
 	}
 
 	if err := ipt.ClearChain(); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
 
 	if err := ipt.Update(); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
 	}
 
 	clients := mon.NewClients(flags.avgSamples)
@@ -123,7 +129,7 @@ func main() {
 	go func(ctx context.Context) {
 		ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal().Err(err).Msg("")
 		}
 		ticker := time.NewTicker(flags.iptablesRulesDuration)
 		for {
@@ -131,7 +137,7 @@ func main() {
 			case <-ticker.C:
 				err := ipt.Update()
 				if err != nil {
-					log.Println(err)
+					log.Info().Err(err).Msg("")
 				}
 			case <-ctx.Done():
 				return
@@ -143,7 +149,7 @@ func main() {
 		update := func() {
 			arps, err := mon.Arps()
 			if err != nil {
-				log.Println(err)
+				log.Info().Err(err).Msg("")
 				return
 			}
 			arps = arps.FilterDeviceName(flags.LANIface)
@@ -169,7 +175,7 @@ func main() {
 			case <-ticker.C:
 				arps, err := mon.Arps()
 				if err != nil {
-					log.Println(err)
+					log.Info().Err(err).Msg("")
 					continue loop
 				}
 				arps = arps.FilterDeviceName(flags.LANIface)
@@ -177,7 +183,8 @@ func main() {
 				for _, v := range arps {
 					name, err := mon.ResolveHostname(v.IPAddress)
 					if err != nil {
-						log.Println(err)
+						log.Info().Err(err).Msg("")
+
 					}
 					names[v.IPAddress] = name
 				}
@@ -246,7 +253,7 @@ func main() {
 		}
 		err := clientsTempl.Execute(w, &d)
 		if err != nil {
-			log.Println(err)
+			log.Info().Err(err).Msg("")
 		}
 	})
 
@@ -301,7 +308,8 @@ func main() {
 		defer conntrackMu.Unlock()
 		fs, err := mon.Flows()
 		if err != nil {
-			log.Println(err)
+
+			log.Info().Err(err).Msg("")
 			w.WriteHeader(500)
 			return
 		}
@@ -316,7 +324,7 @@ func main() {
 		}
 		err = conntrackTempl.Execute(w, &data)
 		if err != nil {
-			log.Println(err)
+			log.Info().Err(err).Msg("")
 		}
 	})
 
@@ -326,7 +334,7 @@ func main() {
 		c = includeFilter(c, r)
 		data, err := json.Marshal(&c)
 		if err != nil {
-			log.Println(err)
+			log.Info().Err(err).Msg("")
 			w.WriteHeader(500)
 			return
 		}
@@ -342,7 +350,8 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 	go func() {
-		log.Fatal(hs.ListenAndServe())
+		log.Fatal().Err(hs.ListenAndServe()).Msg("")
+
 	}()
 
 	go func(ctx context.Context) {
@@ -354,11 +363,11 @@ func main() {
 			case <-ticker.C:
 				next, err := ipt.Stats()
 				if err != nil {
-					log.Println(err)
+					log.Info().Err(err).Msg("")
 					continue loop
 				}
 				if err = clients.UpdateIPTables(next); err != nil {
-					log.Println(err)
+					log.Info().Err(err).Msg("")
 					continue loop
 				}
 			case <-ctx.Done():
@@ -368,9 +377,10 @@ func main() {
 	}(ctx)
 
 	<-ctx.Done()
-	log.Println("shutting down...")
+	log.Info().Msg("shutting down...")
 	if err := ipt.Delete(); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("")
+
 	}
 
 }

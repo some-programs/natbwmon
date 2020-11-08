@@ -2,7 +2,6 @@ package mon
 
 import (
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/coreos/go-iptables/iptables"
 	"github.com/mxmCherry/movavg"
 	"github.com/some-programs/natbwmon/internal/clientstats"
+	"github.com/some-programs/natbwmon/internal/log"
 )
 
 type Client struct {
@@ -26,7 +26,8 @@ func NewClient(ip string, avgSamples int) *Client {
 	now := time.Now()
 	name, err := ResolveHostname(ip)
 	if err != nil {
-		log.Println(err)
+		log.Warn().Err(err).Msg("")
+
 	}
 
 	return &Client{
@@ -79,7 +80,7 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) error {
 		// supress negative rate numbers, could potentially be caused by
 		// external reset of iptables counters, a single 0 value won't cause
 		// significant display errors.
-		log.Println("got negative bytes count", s, count)
+		log.Warn().Msgf("got negative bytes count", s, count)
 		db = 0
 	}
 	dur := float64(timestamp.Sub(count.updatedAt))
@@ -89,7 +90,7 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) error {
 		count.bytes = s.Bytes
 		count.updatedAt = timestamp
 	} else {
-		log.Println("no time difference, skipping updating rate counter", dur, db)
+		log.Warn().Msgf("no time difference, skipping updating rate counter", dur, db)
 	}
 	c.UpdatedAt = time.Now()
 	return nil
@@ -169,7 +170,7 @@ func (c *Clients) UpdateNames(names map[string]string) error {
 		if ok {
 			client.UpdateName(v)
 		} else {
-			log.Println("no client registerd for", k, v)
+			log.Warn().Msgf("no client registerd for", k, v)
 		}
 	}
 	return nil
