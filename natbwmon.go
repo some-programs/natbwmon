@@ -56,7 +56,9 @@ func main() {
 	fenv.MustParse()
 	flag.Parse()
 
-	logFlags.Setup()
+	if err := logFlags.Setup(); err != nil {
+		panic(err)
+	}
 
 	log.Debug().Msg("application starting")
 
@@ -153,7 +155,9 @@ func main() {
 				return
 			}
 			arps = arps.FilterDeviceName(flags.LANIface)
-			clients.UpdateArp(arps)
+			if err := clients.UpdateArp(arps); err != nil {
+				log.Info().Err(err).Msg("update arp failed")
+			}
 		}
 		update()
 		ticker := time.NewTicker(flags.arpDuration)
@@ -188,7 +192,9 @@ func main() {
 					}
 					names[v.IPAddress] = name
 				}
-				clients.UpdateNames(names)
+				if err := clients.UpdateNames(names); err != nil {
+					log.Info().Err(err).Msg("update names failed")
+				}
 
 			case <-ctx.Done():
 				return
@@ -340,7 +346,7 @@ func main() {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write(data)
+		_, _ = w.Write(data)
 	})
 
 	hs := &http.Server{

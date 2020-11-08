@@ -78,7 +78,7 @@ aloop:
 func (i *IPTables) Delete() error {
 	err := i.ClearChain()
 	if err != nil {
-		log.Fatal().Err(err).Msg("delete iptables")
+		log.Fatal().Err(err).Msg("clear iptables chain failed")
 	}
 
 	for {

@@ -68,7 +68,7 @@ func (c *Client) Stat() clientstats.Stat {
 	}
 }
 
-func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) error {
+func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) {
 	var count *counter
 	if !s.Source.IP.IsUnspecified() {
 		count = c.out
@@ -93,19 +93,16 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) error {
 		log.Warn().Msgf("no time difference, skipping updating rate counter", dur, db)
 	}
 	c.UpdatedAt = time.Now()
-	return nil
 }
 
-func (c *Client) UpdateArp(a parp.Entry) error {
+func (c *Client) UpdateArp(a parp.Entry) {
 	c.UpdatedAt = time.Now()
 	c.HWAddr = a.HWAddress
-	return nil
 }
 
-func (c *Client) UpdateName(name string) error {
+func (c *Client) UpdateName(name string) {
 	c.UpdatedAt = time.Now()
 	c.Name = name
-	return nil
 }
 
 type Clients struct {
