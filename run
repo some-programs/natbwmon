@@ -9,7 +9,7 @@ ssh ${SSHC} killall -q natbwmon-arm64
 set -e
 
 ssh ${SSHC} rm -f /tmp/natbwmon-arm64
-GOOS=linux GOARCH=arm64 go build -o natbwmon-arm64 .
+GOOS=linux GOARCH=arm64 go1.16beta1 build -o natbwmon-arm64 .
 scp natbwmon-arm64 ${SSHC}:/tmp/
 ssh ${SSHC} /tmp/natbwmon-arm64 \
     -log.debug  \

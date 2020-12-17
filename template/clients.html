@@ -1,0 +1,29 @@
+{{define "content"}}
+<table>
+    <tr>
+        <th><a href="/?order_by=ip">IP</a></th>
+        <th><a href="/?order_by=name">Hostname</a></th>
+        <th><a href="/?order_by=rate_in">IN rate</a></th>
+        <th><a href="/?order_by=rate_out">OUT rate</a></th>
+        <th><a href="/?order_by=hwaddr">Hardware address</a></th>
+    </tr>
+    {{range .Hosts}}
+    <tr>
+        <td><a href="/conntrack?ip={{.IP}}">{{ .IP }}</a></td>
+        <td>{{ .Name }}</td>
+        <td>{{ .InFmt }}</td>
+        <td>{{ .OutFmt }}</td>
+        <td><a href="https://hwaddress.com/?q={{ .HWAddrPrefix }}">{{ .HWAddr }}</a></td>
+    </tr>
+    {{else}}
+    <tr>
+        <td><strong>no rows</strong></td>
+    </tr>
+    {{end}}
+</table>
+<script>
+ var t=setTimeout(function(){window.location.reload()}, 900);
+ document.onkeypress = function(e){clearTimeout(t)};
+ document.addEventListener('click', function(e){clearTimeout(t)});
+</script>
+{{ end }}

@@ -85,12 +85,12 @@ func main() {
 		mon.AliasesMap[ss[0]] = ss[1]
 	}
 
-	clientsTempl, err := template.New("").Parse(clientsTpl)
+	clientsTempl, err := template.ParseFS(TemplateFS, "template/base.html", "template/clients.html")
 	if err != nil {
 		log.Fatal().Err(err).Msg("parse templates")
 	}
 
-	conntrackTempl, err := template.New("").Funcs(
+	conntrackTempl, err := template.New("base.html").Funcs(
 		template.FuncMap{
 			"ipclass": func(ip net.IP) string {
 				if mon.IsPrivateIP(ip) {
@@ -98,7 +98,7 @@ func main() {
 				}
 				return "success"
 			}},
-	).Parse(conntrackTpl)
+	).ParseFS(TemplateFS, "template/base.html", "template/conntrack.html")
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
@@ -330,7 +330,7 @@ func main() {
 		}
 		err = conntrackTempl.Execute(w, &data)
 		if err != nil {
-			log.Info().Err(err).Msg("")
+			log.Info().Err(err).Msg("render conntrack")
 		}
 	})
 
@@ -348,6 +348,7 @@ func main() {
 		w.WriteHeader(200)
 		_, _ = w.Write(data)
 	})
+	http.Handle("/static/", http.FileServer(http.FS(StaticFS)))
 
 	hs := &http.Server{
 		Addr:           flags.listen,
