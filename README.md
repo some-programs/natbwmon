@@ -22,11 +22,10 @@
   
 ## how to use
 
-- The only requirement is Go 1.14 or later for mative and cross platform
+- The only requirement is Go 1.16 or later for mative and cross platform
   builds.
 
 - Look at the [run](run) script to see how the application is compiled and
   transferred to the arm64 UDM pro device. 
   
-
 - Execute `go run . -h` to see command line flags.
