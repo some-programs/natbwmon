@@ -80,6 +80,13 @@ td {
   padding-right: 5px;
 }
 
+tr > td:nth-child(3) {
+  min-width: 5.5em;
+}
+tr > td:nth-child(4) {
+  min-width: 5.5em;
+}
+
 th > button {
   font-weight: bold;
   font-family: 'Roboto Condensed', sans-serif;
