@@ -3,13 +3,11 @@ package main
 import (
 	"embed"
 
-	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/mon"
 )
 
 // clientsTemplateData .
 type clientsTemplateData struct {
-	Hosts []clientstats.Stat
 	Title string
 }
 

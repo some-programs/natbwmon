@@ -6,7 +6,6 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/ItsJimi/go-arp v0.0.0-20201012204938-e64e09dca888
 	github.com/coreos/go-iptables v0.4.5
-	github.com/davecgh/go-spew v1.1.1
 	github.com/digineo/go-ping v1.0.0
 	github.com/gizak/termui/v3 v3.1.0
 	github.com/go-pa/fenv v0.2.1
@@ -19,9 +18,8 @@ require (
 	github.com/onsi/ginkgo v1.12.1 // indirect
 	github.com/onsi/gomega v1.10.0 // indirect
 	github.com/rs/zerolog v1.20.0
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/net v0.0.0-20201216054612-986b41b23924 // indirect
-	golang.org/x/sys v0.0.0-20201214210602-f9fddec55a1e // indirect
+	golang.org/x/sys v0.0.0-20201218084310-7d0127a74742 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	honnef.co/go/conntrack v0.0.0-20150201073631-9b638283668d
 	honnef.co/go/netdb v0.0.0-20150201073656-a416d700ae39 // indirect

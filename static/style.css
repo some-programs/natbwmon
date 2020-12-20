@@ -91,3 +91,17 @@ h4 { font-size: 1.2em; }
 .failed-invert > a {
   color: white;
 }
+
+
+button {
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  cursor: pointer;
+  color: #125E89;
+  text-decoration: none;
+}
+
+button:hover {
+  text-decoration: underline;
+}

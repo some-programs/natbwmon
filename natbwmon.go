@@ -252,11 +252,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		c := clients.Stats()
-		orderStats(c, r)
-		d := clientsTemplateData{
-			Hosts: c,
-		}
+		d := clientsTemplateData{}
 		err := clientsTempl.Execute(w, &d)
 		if err != nil {
 			log.Info().Err(err).Msg("")
