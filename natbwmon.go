@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/benbjohnson/hashfs"
 	"github.com/go-pa/fenv"
 	"github.com/go-pa/flagutil"
 	"github.com/some-programs/natbwmon/internal/clientstats"
@@ -85,13 +86,19 @@ func main() {
 		mon.AliasesMap[ss[0]] = ss[1]
 	}
 
-	clientsTempl, err := template.ParseFS(TemplateFS, "template/base.html", "template/clients.html")
+	clientsTempl, err := template.New("base.html").Funcs(
+		template.FuncMap{
+			"static": StaticHashFS.HashName,
+		},
+	).ParseFS(TemplateFS, "template/base.html", "template/clients.html")
+
 	if err != nil {
 		log.Fatal().Err(err).Msg("parse templates")
 	}
 
 	conntrackTempl, err := template.New("base.html").Funcs(
 		template.FuncMap{
+			"static": StaticHashFS.HashName,
 			"ipclass": func(ip net.IP) string {
 				if mon.IsPrivateIP(ip) {
 					return "failed"
@@ -344,7 +351,7 @@ func main() {
 		w.WriteHeader(200)
 		_, _ = w.Write(data)
 	})
-	http.Handle("/static/", http.FileServer(http.FS(StaticFS)))
+	http.Handle("/static/", hashfs.FileServer(StaticHashFS))
 
 	hs := &http.Server{
 		Addr:           flags.listen,

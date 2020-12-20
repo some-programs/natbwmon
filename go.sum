@@ -2,6 +2,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/ItsJimi/go-arp v0.0.0-20201012204938-e64e09dca888 h1:QC8bbXEE+sesXvhBsudtAwc/YrSkLEPeIjlpVr0hAow=
 github.com/ItsJimi/go-arp v0.0.0-20201012204938-e64e09dca888/go.mod h1:ZCx7/feF35L4ePZcryQSNmbm1wLT9EyhmZgWsAni+qs=
+github.com/benbjohnson/hashfs v0.1.0 h1:IDx9WvG81QRFZbXlpOki65OBpCpLcCi8Avl/S+8Q31s=
+github.com/benbjohnson/hashfs v0.1.0/go.mod h1:7OMXaMVo1YkfiIPxKrl7OXkUTUgWjmsAKyR+E6xDIRM=
 github.com/coreos/go-iptables v0.4.5 h1:DpHb9vJrZQEFMcVLFKAAGMUVX0XoRC0ptCthinRYm38=
 github.com/coreos/go-iptables v0.4.5/go.mod h1:/mVI274lEDI2ns62jHCDnCyBF9Iwsmekav8Dbxlm1MU=
 github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=

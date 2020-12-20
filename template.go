@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 
+	"github.com/benbjohnson/hashfs"
 	"github.com/some-programs/natbwmon/internal/mon"
 )
 
@@ -21,6 +22,8 @@ type conntrackTemplateData struct {
 
 //go:embed static
 var StaticFS embed.FS
+
+var StaticHashFS = hashfs.NewFS(StaticFS)
 
 //go:embed template
 var TemplateFS embed.FS

@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/ItsJimi/go-arp v0.0.0-20201012204938-e64e09dca888
+	github.com/benbjohnson/hashfs v0.1.0
 	github.com/coreos/go-iptables v0.4.5
 	github.com/digineo/go-ping v1.0.0
 	github.com/gizak/termui/v3 v3.1.0
