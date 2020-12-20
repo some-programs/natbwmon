@@ -33,8 +33,8 @@ const hwaddrPrefix = (hwaddr: string) => {
 const updateData = async () => {
   const resp = await fetch(`/v1/stats/?order_by=${orderBy}`);
   const data = await resp.json();
-  const container = document.getElementById("hosts")!;
-  container.textContent = "";
+
+  const el = document.createElement("tbody");
   const header = document.createElement("tr");
   header.innerHTML = `
 <th><button onclick="app.setOrderBy('ip')">IP</a></th>
@@ -43,9 +43,9 @@ const updateData = async () => {
 <th><button onclick="app.setOrderBy('rate_out')">OUT rate</a></th>
 <th><button onclick="app.setOrderBy('hwaddr')">Hardware address</a></th>
 `;
-  container.appendChild(header);
+  el.appendChild(header);
 
-  const rows = data.map((v: Row) => {
+  for (const v of data) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
  <td><a href="/conntrack?ip=${v.ip}">${v.ip}</a></td>
@@ -56,10 +56,12 @@ const updateData = async () => {
       v.hwaddr
     }</a></td>
 `;
+    el.appendChild(tr);
+  }
 
-    container.appendChild(tr);
-    return tr;
-  });
+  const container = document.getElementById("hosts")!;
+  container.textContent = "";
+  container.appendChild(el);
 };
 
 const refreshRate = 800;

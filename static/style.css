@@ -79,6 +79,12 @@ td {
   padding-right: 5px;
 }
 
+th > button {
+  font-weight: bold;
+  font-family: 'Roboto Condensed', sans-serif;
+  text-decoration: solid;
+}
+
 pre {
   font-family: 'Roboto Mono', monospace;
   color: var(--fg);
@@ -149,7 +155,6 @@ button {
   padding: 0!important;
   cursor: pointer;
   color:var(--link);
-  text-decoration: none;
 }
 
 button:hover {
