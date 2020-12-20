@@ -50,8 +50,8 @@ const updateData = async () => {
     tr.innerHTML = `
  <td><a href="/conntrack?ip=${v.ip}">${v.ip}</a></td>
  <td>${v.name}</td>
- <td>${fmtRate(v.in_rate)}</td>
- <td>${fmtRate(v.out_rate)}</td>
+ <td class="success">${fmtRate(v.in_rate)}</td>
+ <td class="failed">${fmtRate(v.out_rate)}</td>
  <td><a href="https://hwaddress.com/?q=${hwaddrPrefix(v.hwaddr)}">${
       v.hwaddr
     }</a></td>
