@@ -1,14 +1,14 @@
 :root {
   --bg: #fff;
-  --fg: #222;
+  --fg: #333;
   --hl-fg: black;
   --hl-bg:#e8e8e8;
   --link: #125E89;
   --border: #ddd;
+  --border2: #CA9F00;
 
   --green: #598700;
   --red: #A11C42;
-  --yellow: #CA9F00;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,10 +18,11 @@
   --hl-fg: #ddd;
   --hl-bg:#333;
   --link:#1f9be2;
+  --border: #444;
+  --border2: #777;
 
   --green: #7bba00;
   --red: #df4470;
-  --yellow: #fdc700;
   }
 }
 
@@ -82,7 +83,7 @@ td {
 th > button {
   font-weight: bold;
   font-family: 'Roboto Condensed', sans-serif;
-  text-decoration: solid;
+  color: var(--fg);
 }
 
 pre {
@@ -120,7 +121,7 @@ h1,h2,h3,h4 {
 }
 
 h1 {
-  border-top: 2px solid var(--yellow);
+  border-top: 2px solid var(--border2);
   color: var(--fg);
 }
 h4 {
@@ -155,6 +156,7 @@ button {
   padding: 0!important;
   cursor: pointer;
   color:var(--link);
+  font-size: 1.1em;
 }
 
 button:hover {
