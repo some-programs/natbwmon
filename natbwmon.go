@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"mime"
 	"net"
 	"net/http"
 	"os"
@@ -351,6 +352,9 @@ func main() {
 		w.WriteHeader(200)
 		_, _ = w.Write(data)
 	})
+
+	mime.AddExtensionType(".woff", "font/woff")
+	mime.AddExtensionType(".woff2", "font/woff2")
 	http.Handle("/static/", hashfs.FileServer(StaticHashFS))
 
 	hs := &http.Server{
