@@ -20,7 +20,7 @@ const fmtRate = function (bytes: number, decimals = 2): string {
   const sizes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   const v = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-  return `${v}${sizes[i]}/s`;
+  return `${v} ${sizes[i]}/s`;
 };
 
 const hwaddrPrefix = (hwaddr: string) => {
