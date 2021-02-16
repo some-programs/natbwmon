@@ -19,7 +19,7 @@ require (
 	github.com/onsi/gomega v1.10.0 // indirect
 	github.com/rs/zerolog v1.20.0
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/sys v0.0.0-20210216163648-f7da38b97c65 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	honnef.co/go/conntrack v0.0.0-20150201073631-9b638283668d
 	honnef.co/go/netdb v0.0.0-20150201073656-a416d700ae39 // indirect
