@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>{{.Title}}</title>
+  </head>
+  <body>
+    <link href='{{ static "static/style.css" }}' rel="stylesheet">
+    <link href='{{ static "static/vendor/font.css" }}' rel="stylesheet">
+    {{ template "content" .}}
+  </body>
+</html>
