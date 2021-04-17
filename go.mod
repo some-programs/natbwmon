@@ -17,9 +17,10 @@ require (
 	github.com/nsf/termbox-go v0.0.0-20200418040025-38ba6e5628f1 // indirect
 	github.com/onsi/ginkgo v1.12.1 // indirect
 	github.com/onsi/gomega v1.10.0 // indirect
-	github.com/rs/zerolog v1.20.0
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
-	golang.org/x/sys v0.0.0-20210216163648-f7da38b97c65 // indirect
+	github.com/rs/xid v1.3.0 // indirect
+	github.com/rs/zerolog v1.21.0
+	golang.org/x/net v0.0.0-20210415231046-e915ea6b2b7d // indirect
+	golang.org/x/sys v0.0.0-20210415045647-66c3f260301c // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	honnef.co/go/conntrack v0.0.0-20150201073631-9b638283668d
 	honnef.co/go/netdb v0.0.0-20150201073656-a416d700ae39 // indirect
