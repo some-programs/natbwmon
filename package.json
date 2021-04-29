@@ -9,7 +9,7 @@
     "typescript": "^4.1.3"
   },
   "devDependencies": {
-    "prettier": "2.2.1"
+    "prettier": "^2.2.1"
   },
   "scripts": {
     "lint": "prettier -c . && tsc --noEmit",
