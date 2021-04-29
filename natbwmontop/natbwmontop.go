@@ -113,7 +113,7 @@ loop:
 		select {
 		case e := <-uiEvents:
 			switch e.ID {
-			case "q", "<C-c>":
+			case "q", "<C-c>", "<Escape>":
 				break loop
 
 			case "r", "t", "h", "n", "i":
