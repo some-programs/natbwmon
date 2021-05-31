@@ -27,7 +27,6 @@ func NewClient(ip string, avgSamples int) *Client {
 	name, err := ResolveHostname(ip)
 	if err != nil {
 		log.Warn().Err(err).Msg("")
-
 	}
 
 	return &Client{

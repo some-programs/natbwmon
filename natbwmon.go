@@ -39,7 +39,6 @@ var flags = struct {
 }{}
 
 func main() {
-
 	var logFlags log.Flags
 
 	logFlags.Register(flag.CommandLine)
@@ -92,7 +91,6 @@ func main() {
 			"static": StaticHashFS.HashName,
 		},
 	).ParseFS(TemplateFS, "template/base.html", "template/clients.html")
-
 	if err != nil {
 		log.Fatal().Err(err).Msg("parse templates")
 	}
@@ -105,7 +103,8 @@ func main() {
 					return "failed"
 				}
 				return "success"
-			}},
+			},
+		},
 	).ParseFS(TemplateFS, "template/base.html", "template/conntrack.html")
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
@@ -196,7 +195,6 @@ func main() {
 					name, err := mon.ResolveHostname(v.IPAddress)
 					if err != nil {
 						log.Info().Err(err).Msg("")
-
 					}
 					names[v.IPAddress] = name
 				}
@@ -365,11 +363,9 @@ func main() {
 	}
 	go func() {
 		log.Fatal().Err(hs.ListenAndServe()).Msg("")
-
 	}()
 
 	go func(ctx context.Context) {
-
 		ticker := time.NewTicker(flags.iptablesReadDuration)
 	loop:
 		for {
@@ -394,7 +390,5 @@ func main() {
 	log.Info().Msg("shutting down...")
 	if err := ipt.Delete(); err != nil {
 		log.Fatal().Err(err).Msg("")
-
 	}
-
 }

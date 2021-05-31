@@ -15,7 +15,6 @@ var (
 )
 
 func Pinger() {
-
 	p, err := ping.New("0.0.0.0", "")
 	if err != nil {
 		panic(err)
@@ -30,5 +29,4 @@ func Pinger() {
 
 		time.Sleep(2 * time.Second)
 	}
-
 }

@@ -48,7 +48,6 @@ func readStats(ctx context.Context, baseurl string) (clientstats.Stats, error) {
 	}
 
 	return stats, nil
-
 }
 
 func main() {
@@ -160,5 +159,4 @@ loop:
 			os.Exit(1)
 		}
 	}
-
 }

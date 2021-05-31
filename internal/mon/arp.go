@@ -1,6 +1,5 @@
 package mon
 
-
 import (
 	parp "github.com/ItsJimi/go-arp"
 )
