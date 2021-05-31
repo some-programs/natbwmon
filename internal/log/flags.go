@@ -44,11 +44,11 @@ func (f Flags) Setup() error {
 			MaxSize:    f.FileMaxSize,
 			MaxAge:     f.FileMaxAge,
 		}
-		SetNonBlockingLogger(w)
+		SetBlockingLogger(w)
 	} else if f.Console {
 		SetConsoleLogger()
 	} else {
-		SetNonBlockingLogger(os.Stderr)
+		SetBlockingLogger(os.Stderr)
 	}
 	return nil
 }

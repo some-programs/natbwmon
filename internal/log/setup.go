@@ -49,6 +49,13 @@ func SetNonBlockingLogger(w io.Writer) {
 	setup()
 }
 
+// SetBlockingLogger sets up a logger with a blocking writer
+func SetBlockingLogger(w io.Writer) {
+	LoggerWithoutCaller = zerolog.New(w).With().Timestamp().Logger()
+	Logger = LoggerWithoutCaller.With().Caller().Logger()
+	setup()
+}
+
 // SetConsoleLogger sets up logging for console logging (developmnet)
 func SetConsoleLogger() {
 	wr := zerolog.ConsoleWriter{
