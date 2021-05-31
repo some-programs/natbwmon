@@ -12,15 +12,16 @@ require (
 	github.com/go-pa/fenv v0.2.1
 	github.com/go-pa/flagutil v0.1.0
 	github.com/google/go-cmp v0.5.1 // indirect
-	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mxmCherry/movavg v1.1.0
-	github.com/nsf/termbox-go v0.0.0-20200418040025-38ba6e5628f1 // indirect
+	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/onsi/ginkgo v1.12.1 // indirect
 	github.com/onsi/gomega v1.10.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
-	github.com/rs/zerolog v1.21.0
-	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781 // indirect
-	golang.org/x/sys v0.0.0-20210426230700-d19ff857e887 // indirect
+	github.com/rs/zerolog v1.22.0
+	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
+	golang.org/x/sys v0.0.0-20210531080801-fdfd190a6549 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	honnef.co/go/conntrack v0.0.0-20150201073631-9b638283668d
 	honnef.co/go/netdb v0.0.0-20150201073656-a416d700ae39 // indirect
