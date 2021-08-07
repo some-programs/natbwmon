@@ -41,7 +41,8 @@ const updateData = async () => {
 <th><button onclick="app.setOrderBy('name')">Hostname</a></th>
 <th><button onclick="app.setOrderBy('rate_in')">IN rate</a></th>
 <th><button onclick="app.setOrderBy('rate_out')">OUT rate</a></th>
-<th><button onclick="app.setOrderBy('hwaddr')">Hardware address</a></th>
+<th><button onclick="app.setOrderBy('hwaddr')">MAC</a></th>
+<th><button onclick="app.setOrderBy('hwaddr')">Manufacturer</a></th>
 `;
   el.appendChild(header);
 
@@ -52,9 +53,8 @@ const updateData = async () => {
  <td>${v.name}</td>
  <td class="success">${fmtRate(v.in_rate)}</td>
  <td class="failed">${fmtRate(v.out_rate)}</td>
- <td><a href="https://hwaddress.com/?q=${hwaddrPrefix(v.hwaddr)}">${
-      v.hwaddr
-    }</a></td>
+ <td>${v.hwaddr}</td>
+ <td>${v.manufacturer}</td>
 `;
     el.appendChild(tr);
   }

@@ -74,6 +74,16 @@ tr > td:nth-child(1) {
   white-space: nowrap;
   font-family: "Roboto", sans-serif;
 }
+tr > td:nth-child(6) {
+  /* white-space: nowrap; */
+  font-family: "Roboto", sans-serif;
+  font-size: 70%;
+}
+tr > td:nth-child(5) {
+  white-space: nowrap;
+  font-size: 70%;
+}
+
 td {
   padding-left: 5px;
   padding-right: 5px;

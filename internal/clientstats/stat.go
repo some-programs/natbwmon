@@ -6,11 +6,12 @@ import (
 
 // Stat
 type Stat struct {
-	IP      string  `json:"ip"`
-	Name    string  `json:"name"`
-	HWAddr  string  `json:"hwaddr"`
-	InRate  float64 `json:"in_rate"`
-	OutRate float64 `json:"out_rate"`
+	IP           string  `json:"ip"`
+	Name         string  `json:"name"`
+	HWAddr       string  `json:"hwaddr"`
+	InRate       float64 `json:"in_rate"`
+	OutRate      float64 `json:"out_rate"`
+	Manufacturer string  `json:"manufacturer"`
 }
 
 func (s Stat) HWAddrPrefix() string {
