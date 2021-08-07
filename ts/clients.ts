@@ -64,8 +64,6 @@ const updateData = async () => {
   container.appendChild(el);
 };
 
-const refreshRate = 800;
-
 updateData();
 
 const t = setInterval(async function () {
