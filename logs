@@ -1,7 +1,8 @@
 #!/bin/bash
 
-CONTROLLER=192.168.0.1
-USER=root
-SSHC="${USER}@${CONTROLLER}"
+NATBWMON_HOST="${NATBWMON_HOST:-192.168.0.1}"
+NATBWMON_USER="${NATBWMON_USER:-root}"
+SSHC="${NATBWMON_USER}@${NATBWMON_HOST}"
+
 set -e
 exec ssh ${SSHC} tail -n 100 -f /tmp/natbwmon.log | jq
