@@ -26,8 +26,8 @@ func (f *Flags) Register(fs *flag.FlagSet) {
 	fs.BoolVar(&f.Console, "log.console", false, "console formatter")
 	fs.StringVar(&f.FileName, "log.file.name", "", "log file name")
 	fs.IntVar(&f.FileMaxBackups, "log.file.maxbackups", 10, "max log file backups")
-	fs.IntVar(&f.FileMaxSize, "log.file.maxsize", 512, "max log file size (megabytes)")
-	fs.IntVar(&f.FileMaxAge, "log.file.maxage", 98, "max log file age (days)")
+	fs.IntVar(&f.FileMaxSize, "log.file.maxsize", 5, "max log file size (megabytes)")
+	fs.IntVar(&f.FileMaxAge, "log.file.maxage", 60, "max log file age (days)")
 }
 
 // Setup sets up logging accorind to Flags values.
