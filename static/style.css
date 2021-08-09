@@ -74,13 +74,12 @@ tr > td:nth-child(1) {
   white-space: nowrap;
   font-family: "Roboto", sans-serif;
 }
-tr > td:nth-child(6) {
-  /* white-space: nowrap; */
-  font-family: "Roboto", sans-serif;
+
+table#hosts > * > tr > td:nth-child(5) {
+  white-space: nowrap;
   font-size: 70%;
 }
-tr > td:nth-child(5) {
-  white-space: nowrap;
+table#hosts > * > tr > td:nth-child(6) {
   font-size: 70%;
 }
 
