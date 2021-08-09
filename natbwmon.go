@@ -232,6 +232,7 @@ func main() {
 		case "name":
 			s.OrderByName()
 		case "manufacturer":
+			s.OrderByHWAddr()
 			s.OrderByManufacturer()
 		}
 	}
