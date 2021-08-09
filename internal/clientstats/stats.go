@@ -37,3 +37,15 @@ func (s Stats) OrderByName() {
 		return s[i].Name < s[j].Name
 	})
 }
+
+func (s Stats) OrderByManufacturer() {
+	sort.SliceStable(s, func(i, j int) bool {
+		if s[i].Manufacturer == "" && s[j].Manufacturer != "" {
+			return false
+		}
+		if s[i].Manufacturer != "" && s[j].Manufacturer == "" {
+			return true
+		}
+		return s[i].Manufacturer < s[j].Manufacturer
+	})
+}

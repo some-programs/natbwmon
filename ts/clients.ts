@@ -42,7 +42,7 @@ const updateData = async () => {
 <th><button onclick="app.setOrderBy('rate_in')">IN rate</a></th>
 <th><button onclick="app.setOrderBy('rate_out')">OUT rate</a></th>
 <th><button onclick="app.setOrderBy('hwaddr')">MAC</a></th>
-<th><button onclick="app.setOrderBy('hwaddr')">Manufacturer</a></th>
+<th><button onclick="app.setOrderBy('manufacturer')">Manufacturer</a></th>
 `;
   el.appendChild(header);
 

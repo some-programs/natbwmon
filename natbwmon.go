@@ -231,6 +231,8 @@ func main() {
 			s.OrderByHWAddr()
 		case "name":
 			s.OrderByName()
+		case "manufacturer":
+			s.OrderByManufacturer()
 		}
 	}
 
@@ -349,7 +351,6 @@ func main() {
 
 	http.HandleFunc("/v1/stats/", func(w http.ResponseWriter, r *http.Request) {
 		c := clients.Stats()
-		orderStats(c, r)
 		c = includeFilter(c, r)
 		var res clientstats.Stats
 		for _, stat := range c {
@@ -365,6 +366,7 @@ func main() {
 			res = append(res, stat)
 
 		}
+		orderStats(res, r)
 		data, err := json.Marshal(&res)
 		if err != nil {
 			log.Info().Err(err).Msg("")
