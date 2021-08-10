@@ -1,32 +1,35 @@
 {{define "content"}}
 <a class="icon" href="/">/</a>
 <a class="icon" href="/conntrack">⊃</a>
+{{ if and .NMAP .IP }}
+<a class="icon" href="/v0/nmap/?ip={{ .IP }}">nmap</a>
+{{ end }}
 <h1>conntrack {{.IPFilter}}</h1>
 <p>connections: {{ len .FS }}</p>
 <table>
-    <tr>
-        <th><a href="/conntrack?o=proto&ip={{ .IPFilter }}">proto</a></th>
-        <th><a href="/conntrack?o=state&ip={{ .IPFilter }}">state</a></th>
-        <th><a href="/conntrack?o=ttl&ip={{ .IPFilter }}">TTL</a></th>
-        <th><a href="/conntrack?o=orig_src&ip={{ .IPFilter }}">orig source</a></th>
-        <th><a href="/conntrack?o=orig_dst&ip={{ .IPFilter }}">orig dest</a></th>
-        <th><a href="/conntrack?o=reply_src&ip={{ .IPFilter }}">reply source</a></th>
-        <th><a href="/conntrack?o=reply_dst&ip={{ .IPFilter }}">reply dest</a></th>
-    </tr>
-    {{range .FS }}
-    <tr>
-        <td>{{ .Protocol.Name }}</td>
-        <td>{{ .State }}</td>
-        <td>{{ .TTL }}</td>
-        <td class="{{ ipclass .Original.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Original.Source }}">{{ .Original.Source }}</a>:{{ .Original.SPort }}</td>
-        <td class="{{ ipclass .Original.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Original.Destination }}">{{ .Original.Destination }}</a>:{{ .Original.DPort }}</td>
-        <td class="{{ ipclass .Reply.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Reply.Source }}">{{ .Reply.Source }}</a>:{{ .Reply.SPort }}</td>
-        <td class="{{ ipclass .Reply.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Reply.Destination }}">{{ .Reply.Destination }}</a>:{{ .Reply.DPort }}</td>
-    </tr>
-    {{else}}
-    <tr>
-        <td><strong>no rows</strong></td>
-    </tr>
-    {{end}}
+  <tr>
+    <th><a href="/conntrack?o=proto&ip={{ .IPFilter }}">proto</a></th>
+    <th><a href="/conntrack?o=state&ip={{ .IPFilter }}">state</a></th>
+    <th><a href="/conntrack?o=ttl&ip={{ .IPFilter }}">TTL</a></th>
+    <th><a href="/conntrack?o=orig_src&ip={{ .IPFilter }}">orig source</a></th>
+    <th><a href="/conntrack?o=orig_dst&ip={{ .IPFilter }}">orig dest</a></th>
+    <th><a href="/conntrack?o=reply_src&ip={{ .IPFilter }}">reply source</a></th>
+    <th><a href="/conntrack?o=reply_dst&ip={{ .IPFilter }}">reply dest</a></th>
+  </tr>
+  {{range .FS }}
+  <tr>
+    <td>{{ .Protocol.Name }}</td>
+    <td>{{ .State }}</td>
+    <td>{{ .TTL }}</td>
+    <td class="{{ ipclass .Original.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Original.Source }}">{{ .Original.Source }}</a>:{{ .Original.SPort }}</td>
+    <td class="{{ ipclass .Original.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Original.Destination }}">{{ .Original.Destination }}</a>:{{ .Original.DPort }}</td>
+    <td class="{{ ipclass .Reply.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Reply.Source }}">{{ .Reply.Source }}</a>:{{ .Reply.SPort }}</td>
+    <td class="{{ ipclass .Reply.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Reply.Destination }}">{{ .Reply.Destination }}</a>:{{ .Reply.DPort }}</td>
+  </tr>
+  {{else}}
+  <tr>
+    <td><strong>no rows</strong></td>
+  </tr>
+  {{end}}
 </table>
 {{end}}

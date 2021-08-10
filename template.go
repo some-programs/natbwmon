@@ -18,6 +18,8 @@ type conntrackTemplateData struct {
 	FS          mon.FlowSlice
 	IPFilter    string
 	OrderFilter string
+	NMAP        bool
+	IP          string
 }
 
 //go:embed static

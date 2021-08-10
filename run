@@ -12,6 +12,7 @@ ssh ${SSHC} rm -f /tmp/natbwmon-arm64
 GOOS=linux GOARCH=arm64 go build -o natbwmon-arm64 .
 scp natbwmon-arm64 ${SSHC}:/tmp/
 ssh ${SSHC} /tmp/natbwmon-arm64 \
+    -nmap \
     -log.debug  \
     -aliases "00:1b:21:28:a2:b8=gems,00:08:9b:cf:89:4a=dubcube,38:c9:86:44:f4:3f=crangy.eth" \
     -listen "192.168.0.1:8833" \

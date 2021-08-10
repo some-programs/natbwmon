@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"sync"
@@ -42,6 +43,7 @@ var flags = struct {
 	arpDuration              time.Duration
 	resolveHostnamesDuration time.Duration
 	aliases                  flagutil.StringSliceFlag
+	nmap                     bool
 }{}
 
 func main() {
@@ -58,6 +60,7 @@ func main() {
 	flag.DurationVar(&flags.arpDuration, "arp.delay", 5*time.Second, "delay between rereading arp table to update client hardware addresses")
 	flag.DurationVar(&flags.resolveHostnamesDuration, "dns.delay", time.Minute, "delay between reresolving host names.")
 	flag.Var(&flags.aliases, "aliases", "hardware address aliases comma separated. ex: -aliases=00:00:00:00:00:00=nas.alias,00:00:00:00:00:01=server.alias")
+	flag.BoolVar(&flags.nmap, "nmap", false, "enable nmap api")
 
 	fenv.CommandLinePrefix("NATBWMON_")
 	fenv.MustParse()
@@ -339,6 +342,8 @@ func main() {
 		orderConntrack(fs, r)
 
 		data := conntrackTemplateData{
+			NMAP:        flags.nmap,
+			IP:          r.URL.Query().Get("ip"),
 			FS:          fs,
 			Title:       "conntrack",
 			IPFilter:    r.URL.Query().Get("ip"),
@@ -379,14 +384,41 @@ func main() {
 		_, _ = w.Write(data)
 	})
 
+	if flags.nmap {
+		// experimental v0 api, subject to change
+		http.HandleFunc("/v0/nmap/", func(w http.ResponseWriter, r *http.Request) {
+			ipStr := r.URL.Query().Get("ip")
+			ip := net.ParseIP(ipStr)
+			if ip == nil {
+				log.Info().Str("ip", ipStr).Msg("could not parse ip argument")
+				w.WriteHeader(400)
+				return
+			}
+			w.Header().Set("Content-Type", "text/event-stream")
+
+			ctx := r.Context()
+			cmd := exec.CommandContext(ctx, "nmap", "-v", "-A", "-T4", ip.String())
+			w.Write([]byte(fmt.Sprintf("running: %s\n", strings.Join(cmd.Args, " "))))
+			cmd.Stdout = w
+			cmd.Stderr = w
+			err := cmd.Run()
+			if err != nil {
+				log.Error().Err(err).Str("ip", ipStr).Msg("nmap failed")
+				return
+			}
+			w.Write([]byte("\n nmap successful exit"))
+
+		})
+	}
+
 	mime.AddExtensionType(".woff", "font/woff")
 	mime.AddExtensionType(".woff2", "font/woff2")
 	http.Handle("/static/", hashfs.FileServer(StaticHashFS))
 
 	hs := &http.Server{
 		Addr:           flags.listen,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    10 * time.Minute,
+		WriteTimeout:   10 * time.Minute,
 		MaxHeaderBytes: 1 << 20,
 	}
 	go func() {
