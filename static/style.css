@@ -75,14 +75,6 @@ tr > td:nth-child(1) {
   font-family: "Roboto", sans-serif;
 }
 
-table#hosts > * > tr > td:nth-child(5) {
-  white-space: nowrap;
-  font-size: 70%;
-}
-table#hosts > * > tr > td:nth-child(6) {
-  font-size: 70%;
-}
-
 td {
   padding-left: 5px;
   padding-right: 5px;
