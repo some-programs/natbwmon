@@ -2,4 +2,4 @@
 
 set -e
 
-exec curl -o oui.txt http://standards-oui.ieee.org/oui/oui.txt
+exec curl -o manuf https://gitlab.com/wireshark/wireshark/-/raw/master/manuf

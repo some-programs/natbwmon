@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"encoding/json"
@@ -22,14 +21,14 @@ import (
 	"github.com/benbjohnson/hashfs"
 	"github.com/go-pa/fenv"
 	"github.com/go-pa/flagutil"
-	"github.com/klauspost/oui"
 	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
+	"github.com/tomruk/oui"
 )
 
-//go:embed oui.txt
-var ouiTxt []byte
+//go:embed manuf
+var manufTxt []byte
 
 // all command line flags, global state for now
 var flags = struct {
@@ -140,7 +139,7 @@ func main() {
 		log.Fatal().Err(err).Msg("")
 	}
 
-	ouiDB, err := oui.Open(bytes.NewReader(ouiTxt))
+	ouiDB, err := oui.NewDB(manufTxt)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
@@ -360,15 +359,12 @@ func main() {
 		c = includeFilter(c, r)
 		var res clientstats.Stats
 		for _, stat := range c {
-			v, err := ouiDB.Query(stat.HWAddr)
+			v, err := ouiDB.Lookup(stat.HWAddr)
 			if err != nil {
-				if err != oui.ErrNotFound {
-					log.Error().Err(err).Msg("lookup error")
-				}
+				log.Error().Err(err).Msg("lookup error")
 			} else {
-				stat.Manufacturer = v.Manufacturer
+				stat.Manufacturer = v
 			}
-
 			res = append(res, stat)
 
 		}
