@@ -107,7 +107,10 @@ func main() {
 		template.FuncMap{
 			"static": StaticHashFS.HashName,
 			"ipclass": func(ip net.IP) string {
-				if mon.IsPrivateIP(ip) {
+				if ip.IsLoopback() || ip.IsMulticast() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+					return "blue"
+				}
+				if ip.IsPrivate() {
 					return "failed"
 				}
 				return "success"

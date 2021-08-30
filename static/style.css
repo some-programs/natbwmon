@@ -9,6 +9,7 @@
 
   --green: #598700;
   --red: #a11c42;
+  --blue: #1c42a1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,6 +24,7 @@
 
     --green: #7bba00;
     --red: #df4470;
+    --blue: #4470df;
   }
 }
 
@@ -118,6 +120,16 @@ pre {
 }
 .failed > button {
   color: var(--red);
+}
+
+.blue {
+  color: var(--blue);
+}
+.blue > a {
+  color: var(--blue);
+}
+.blue > button {
+  color: var(--blue);
 }
 
 h1,
