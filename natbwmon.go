@@ -368,8 +368,20 @@ func main() {
 			} else {
 				stat.Manufacturer = v
 			}
+			if stat.Manufacturer == "" {
+				hwa, err := net.ParseMAC(stat.HWAddr)
+				if err != nil {
+					log.Error().Err(err).Msg("error parsing hardware addr")
+				} else {
+					switch {
+					case (hwa[0] & 1) > 0:
+						stat.Manufacturer = "{multicast}"
+					case (hwa[0] & 2) > 0:
+						stat.Manufacturer = "{local/random}"
+					}
+				}
+			}
 			res = append(res, stat)
-
 		}
 		orderStats(res, r)
 		data, err := json.Marshal(&res)
