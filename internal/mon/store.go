@@ -79,7 +79,7 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) {
 		// supress negative rate numbers, could potentially be caused by
 		// external reset of iptables counters, a single 0 value won't cause
 		// significant display errors.
-		log.Warn().Msgf("got negative bytes count", s, count)
+		log.Warn().Msgf("got negative bytes count: %v %v", s, count)
 		db = 0
 	}
 	dur := float64(timestamp.Sub(count.updatedAt))
@@ -89,7 +89,7 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) {
 		count.bytes = s.Bytes
 		count.updatedAt = timestamp
 	} else {
-		log.Warn().Msgf("no time difference, skipping updating rate counter", dur, db)
+		log.Warn().Msgf("no time difference, skipping updating rate counter %v %v", dur, db)
 	}
 	c.UpdatedAt = time.Now()
 }
@@ -166,7 +166,7 @@ func (c *Clients) UpdateNames(names map[string]string) error {
 		if ok {
 			client.UpdateName(v)
 		} else {
-			log.Warn().Msgf("no client registerd for", k, v)
+			log.Warn().Msgf("no client registerd for %v %v", k, v)
 		}
 	}
 	return nil
