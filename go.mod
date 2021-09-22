@@ -21,16 +21,16 @@ require (
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/digineo/go-logwrap v0.0.0-20181106161722-a178c58ea3f0 // indirect
-	github.com/google/go-cmp v0.5.1 // indirect
+	github.com/google/go-cmp v0.5.5 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/nsf/termbox-go v1.1.1 // indirect
-	github.com/onsi/ginkgo v1.12.1 // indirect
-	github.com/onsi/gomega v1.10.0 // indirect
+	github.com/onsi/ginkgo v1.16.4 // indirect
+	github.com/onsi/gomega v1.16.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
-	golang.org/x/net v0.0.0-20210908191846-a5e095526f91 // indirect
-	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
-	gopkg.in/yaml.v2 v2.2.4 // indirect
-	honnef.co/go/netdb v0.0.0-20150201073656-a416d700ae39 // indirect
+	golang.org/x/net v0.0.0-20210917221730-978cfadd31cf // indirect
+	golang.org/x/sys v0.0.0-20210921065528-437939a70204 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	honnef.co/go/netdb v0.0.0-20210921115105-e902e863d85d // indirect
 )
