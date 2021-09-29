@@ -8,7 +8,7 @@ require (
 	github.com/coreos/go-iptables v0.6.0
 	github.com/digineo/go-ping v1.0.1
 	github.com/gizak/termui/v3 v3.1.0
-	github.com/go-pa/fenv v0.2.1
+	github.com/go-pa/fenv v1.0.0
 	github.com/go-pa/flagutil v0.1.0
 	github.com/mxmCherry/movavg v1.1.0
 	github.com/rs/zerolog v1.25.0
@@ -29,8 +29,8 @@ require (
 	github.com/onsi/gomega v1.16.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
-	golang.org/x/net v0.0.0-20210917221730-978cfadd31cf // indirect
-	golang.org/x/sys v0.0.0-20210921065528-437939a70204 // indirect
+	golang.org/x/net v0.0.0-20210928044308-7d9f5e0b762b // indirect
+	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/netdb v0.0.0-20210921115105-e902e863d85d // indirect
 )
