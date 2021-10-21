@@ -29,8 +29,8 @@ require (
 	github.com/onsi/gomega v1.16.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
-	golang.org/x/net v0.0.0-20210928044308-7d9f5e0b762b // indirect
-	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
+	golang.org/x/net v0.0.0-20211020060615-d418f374d309 // indirect
+	golang.org/x/sys v0.0.0-20211020174200-9d6173849985 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/netdb v0.0.0-20210921115105-e902e863d85d // indirect
 )
