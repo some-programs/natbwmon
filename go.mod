@@ -11,7 +11,7 @@ require (
 	github.com/go-pa/fenv v1.0.0
 	github.com/go-pa/flagutil v0.1.0
 	github.com/mxmCherry/movavg v1.1.0
-	github.com/rs/zerolog v1.25.0
+	github.com/rs/zerolog v1.26.0
 	github.com/tomruk/oui v1.0.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	honnef.co/go/conntrack v0.0.0-20150201073631-9b638283668d
@@ -29,8 +29,8 @@ require (
 	github.com/onsi/gomega v1.16.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
-	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
-	golang.org/x/sys v0.0.0-20211031064116-611d5d643895 // indirect
+	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4 // indirect
+	golang.org/x/sys v0.0.0-20211123173158-ef496fb156ab // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/netdb v0.0.0-20210921115105-e902e863d85d // indirect
 )
