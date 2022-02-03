@@ -335,9 +335,9 @@ func main() {
 		defer conntrackMu.Unlock()
 		fs, err := mon.Flows()
 		if err != nil {
-
 			log.Info().Err(err).Msg("")
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 			return
 		}
 		fs = filterConntrack(fs, r)
@@ -387,11 +387,12 @@ func main() {
 		data, err := json.Marshal(&res)
 		if err != nil {
 			log.Info().Err(err).Msg("")
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(data)
 	})
 
@@ -402,7 +403,7 @@ func main() {
 			ip := net.ParseIP(ipStr)
 			if ip == nil {
 				log.Info().Str("ip", ipStr).Msg("could not parse ip argument")
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 			w.Header().Set("Content-Type", "text/event-stream")
