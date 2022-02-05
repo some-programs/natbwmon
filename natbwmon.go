@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/benbjohnson/hashfs"
-	"github.com/go-pa/fenv"
 	"github.com/go-pa/flagutil"
+	"github.com/peterbourgon/ff/v3"
 	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
@@ -61,9 +61,9 @@ func main() {
 	flag.Var(&flags.aliases, "aliases", "hardware address aliases comma separated. ex: -aliases=00:00:00:00:00:00=nas.alias,00:00:00:00:00:01=server.alias")
 	flag.BoolVar(&flags.nmap, "nmap", false, "enable nmap api")
 
-	fenv.CommandLinePrefix("NATBWMON_")
-	fenv.MustParse()
-	flag.Parse()
+	ff.Parse(flag.CommandLine, os.Args[1:],
+		ff.WithEnvVarPrefix("NATBWMON"),
+	)
 
 	if err := logFlags.Setup(); err != nil {
 		panic(err)

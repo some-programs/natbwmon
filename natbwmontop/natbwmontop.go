@@ -15,7 +15,7 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
-	"github.com/go-pa/fenv"
+	"github.com/peterbourgon/ff/v3"
 	"github.com/some-programs/natbwmon/internal/clientstats"
 )
 
@@ -54,9 +54,10 @@ func main() {
 	var baseURL string
 
 	flag.StringVar(&baseURL, "url", "http://192.168.0.1:8833", "base url for natbwmon")
-	fenv.CommandLinePrefix("NATBWMONTOP_")
-	fenv.MustParse()
-	flag.Parse()
+
+	ff.Parse(flag.CommandLine, os.Args[1:],
+		ff.WithEnvVarPrefix("NATBWMONTOP"),
+	)
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)

@@ -6,10 +6,8 @@ require (
 	github.com/ItsJimi/go-arp v0.0.0-20201012204938-e64e09dca888
 	github.com/benbjohnson/hashfs v0.2.1
 	github.com/coreos/go-iptables v0.6.0
-	github.com/digineo/go-ping v1.0.1
 	github.com/florianl/go-conntrack v0.3.0
 	github.com/gizak/termui/v3 v3.1.0
-	github.com/go-pa/fenv v1.0.0
 	github.com/go-pa/flagutil v0.1.0
 	github.com/mxmCherry/movavg v1.1.0
 	github.com/rs/zerolog v1.26.1
@@ -19,8 +17,6 @@ require (
 )
 
 require (
-	github.com/BurntSushi/toml v0.3.1 // indirect
-	github.com/digineo/go-logwrap v0.0.0-20181106161722-a178c58ea3f0 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/josharian/native v1.0.0 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
@@ -30,6 +26,7 @@ require (
 	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/onsi/gomega v1.16.0 // indirect
+	github.com/peterbourgon/ff/v3 v3.1.2
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
