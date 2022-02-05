@@ -3,26 +3,19 @@ package main
 import (
 	"context"
 	_ "embed"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"html/template"
 	"io"
 	"mime"
-	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
-	"github.com/benbjohnson/hashfs"
 	"github.com/go-pa/flagutil"
 	"github.com/peterbourgon/ff/v3"
-	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
 	"github.com/tomruk/oui"
@@ -104,36 +97,6 @@ func main() {
 			os.Exit(1)
 		}
 		mon.AliasesMap[ss[0]] = ss[1]
-	}
-
-	clientsTempl, err := template.New("base.html").Funcs(
-		template.FuncMap{
-			"static": StaticHashFS.HashName,
-		},
-	).ParseFS(TemplateFS, "template/base.html", "template/clients.html")
-	if err != nil {
-		log.Fatal().Err(err).Msg("parse templates")
-	}
-
-	conntrackTempl, err := template.New("base.html").Funcs(
-		template.FuncMap{
-			"static": StaticHashFS.HashName,
-			"ipclass": func(ip net.IP) string {
-				if ip.IsLoopback() || ip.IsMulticast() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
-					return "blue"
-				}
-				if ip.IsPrivate() {
-					return "failed"
-				}
-				return "success"
-			},
-			"bytes": func(n uint64) string {
-				return clientstats.FmtBytes(float64(n), "")
-			},
-		},
-	).ParseFS(TemplateFS, "template/base.html", "template/conntrack.html")
-	if err != nil {
-		log.Fatal().Err(err).Msg("")
 	}
 
 	ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
@@ -239,207 +202,20 @@ func main() {
 		}
 	}(ctx)
 
-	orderStats := func(s clientstats.Stats, r *http.Request) {
-		s.OrderByIP()
-		orderBy := r.URL.Query().Get("order_by")
-		switch orderBy {
-		case "rate_in":
-			s.OrderByInRate()
-		case "rate_out":
-			s.OrderByOutRate()
-		case "hwaddr":
-			s.OrderByHWAddr()
-		case "name":
-			s.OrderByName()
-		case "manufacturer":
-			s.OrderByHWAddr()
-			s.OrderByManufacturer()
-		}
-	}
-
-	includeFilter := func(ss clientstats.Stats, r *http.Request) clientstats.Stats {
-		q := r.URL.Query()
-		IPs := q["ip"]
-		HWAddrs := q["hwaddr"]
-		names := q["name"]
-
-		if len(IPs) == 0 && len(HWAddrs) == 0 && len(names) == 0 {
-			return ss
-		}
-		var res clientstats.Stats
-	loop:
-		for _, s := range ss {
-			for _, v := range IPs {
-				if s.IP == v {
-					res = append(res, s)
-					continue loop
-				}
-			}
-			for _, v := range names {
-				if s.Name == v {
-					res = append(res, s)
-					continue loop
-				}
-			}
-			for _, v := range HWAddrs {
-				if s.HWAddr == v {
-					res = append(res, s)
-					continue loop
-				}
-			}
-		}
-		return res
-	}
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		d := clientsTemplateData{}
-		err := clientsTempl.Execute(w, &d)
-		if err != nil {
-			log.Info().Err(err).Msg("")
-		}
-	})
-
-	filterConntrack := func(fs mon.FlowSlice, r *http.Request) mon.FlowSlice {
-		q := r.URL.Query()
-		ip := q.Get("ip")
-		if ip != "" {
-			ip := net.ParseIP(ip)
-			fs = fs.FilterByIP(ip)
-		}
-		return fs
-	}
-
-	orderConntrack := func(fs mon.FlowSlice, r *http.Request) {
-		q := r.URL.Query()
-		ords := q["o"]
-		for i := len(ords) - 1; i >= 0; i-- {
-			orderBy := ords[i]
-			switch orderBy {
-			case "ttl":
-				fs.OrderByTTL()
-			case "orig_src":
-				fs.OrderByOriginalSPort()
-				fs.OrderByOriginalSource()
-			case "orig_dst":
-				fs.OrderByOriginalDPort()
-				fs.OrderByOriginalDestination()
-			case "orig_bytes":
-				fs.OrderByOriginalBytes()
-			case "reply_src":
-				fs.OrderByReplySPort()
-				fs.OrderByReplySource()
-			case "reply_dst":
-				fs.OrderByReplyDPort()
-				fs.OrderByReplyDestination()
-			case "reply_bytes":
-				fs.OrderByReplyBytes()
-
-			}
-		}
-	}
-
-	var conntrackMu sync.Mutex // limit to avoid abuse
-	http.HandleFunc("/conntrack", func(w http.ResponseWriter, r *http.Request) {
-		conntrackMu.Lock()
-		defer conntrackMu.Unlock()
-		fs, err := mon.Flows()
-		if err != nil {
-			log.Info().Err(err).Msg("")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		fs = filterConntrack(fs, r)
-		orderConntrack(fs, r)
-
-		data := conntrackTemplateData{
-			NMAP:        flags.nmap,
-			IP:          r.URL.Query().Get("ip"),
-			FS:          fs,
-			Title:       "conntrack",
-			IPFilter:    r.URL.Query().Get("ip"),
-			OrderFilter: r.URL.Query().Get("o"),
-		}
-		err = conntrackTempl.Execute(w, &data)
-		if err != nil {
-			log.Info().Err(err).Msg("render conntrack")
-		}
-	})
-
-	http.HandleFunc("/v1/stats/", func(w http.ResponseWriter, r *http.Request) {
-		c := clients.Stats()
-		c = includeFilter(c, r)
-		var res clientstats.Stats
-		for _, stat := range c {
-			v, err := ouiDB.Lookup(stat.HWAddr)
-			if err != nil {
-				log.Error().Err(err).Msg("lookup error")
-			} else {
-				stat.Manufacturer = v
-			}
-			if stat.Manufacturer == "" {
-				hwa, err := net.ParseMAC(stat.HWAddr)
-				if err != nil {
-					log.Error().Err(err).Msg("error parsing hardware addr")
-				} else {
-					switch {
-					case (hwa[0] & 1) > 0:
-						stat.Manufacturer = "{multicast}"
-					case (hwa[0] & 2) > 0:
-						stat.Manufacturer = "{local/random}"
-					}
-				}
-			}
-			res = append(res, stat)
-		}
-		orderStats(res, r)
-		data, err := json.Marshal(&res)
-		if err != nil {
-			log.Info().Err(err).Msg("")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(data)
-	})
-
-	if flags.nmap {
-		// experimental v0 api, subject to change
-		http.HandleFunc("/v0/nmap/", func(w http.ResponseWriter, r *http.Request) {
-			ipStr := r.URL.Query().Get("ip")
-			ip := net.ParseIP(ipStr)
-			if ip == nil {
-				log.Info().Str("ip", ipStr).Msg("could not parse ip argument")
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			w.Header().Set("Content-Type", "text/event-stream")
-
-			ctx := r.Context()
-			cmd := exec.CommandContext(ctx, "nmap", "-v", "-A", "-T4", ip.String())
-			w.Write([]byte(fmt.Sprintf("running: %s\n", strings.Join(cmd.Args, " "))))
-			cmd.Stdout = w
-			cmd.Stderr = w
-			err := cmd.Run()
-			if err != nil {
-				log.Error().Err(err).Str("ip", ipStr).Msg("nmap failed")
-				return
-			}
-			w.Write([]byte("\n nmap successful exit"))
-		})
-	}
-
 	mime.AddExtensionType(".woff", "font/woff")
 	mime.AddExtensionType(".woff2", "font/woff2")
-	http.Handle("/static/", hashfs.FileServer(StaticHashFS))
 
+	serv := &Server{
+		nmapEnabled: flags.nmap,
+		ouiDB:       ouiDB,
+		clients:     clients,
+	}
 	hs := &http.Server{
 		Addr:           flags.listen,
 		ReadTimeout:    10 * time.Minute,
 		WriteTimeout:   10 * time.Minute,
 		MaxHeaderBytes: 1 << 20,
+		Handler:        serv.Routes(),
 	}
 	go func() {
 		log.Fatal().Err(hs.ListenAndServe()).Msg("")
