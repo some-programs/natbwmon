@@ -219,6 +219,12 @@ func (fs FlowSlice) OrderByOriginalDestination() {
 	})
 }
 
+func (fs FlowSlice) OrderByOriginalBytes() {
+	sort.SliceStable(fs, func(i, j int) bool {
+		return fs[i].Original.Bytes > fs[j].Original.Bytes
+	})
+}
+
 func (fs FlowSlice) OrderByReplySPort() {
 	sort.SliceStable(fs, func(i, j int) bool {
 		return fs[i].Reply.SPort < fs[j].Reply.SPort
@@ -240,6 +246,12 @@ func (fs FlowSlice) OrderByReplyDPort() {
 func (fs FlowSlice) OrderByReplyDestination() {
 	sort.SliceStable(fs, func(i, j int) bool {
 		return bytes.Compare(fs[i].Reply.Destination, fs[j].Reply.Destination) < 0
+	})
+}
+
+func (fs FlowSlice) OrderByReplyBytes() {
+	sort.SliceStable(fs, func(i, j int) bool {
+		return fs[i].Reply.Bytes > fs[j].Reply.Bytes
 	})
 }
 

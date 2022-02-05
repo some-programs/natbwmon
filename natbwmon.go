@@ -311,12 +311,17 @@ func main() {
 			case "orig_dst":
 				fs.OrderByOriginalDPort()
 				fs.OrderByOriginalDestination()
+			case "orig_bytes":
+				fs.OrderByOriginalBytes()
 			case "reply_src":
 				fs.OrderByReplySPort()
 				fs.OrderByReplySource()
 			case "reply_dst":
 				fs.OrderByReplyDPort()
 				fs.OrderByReplyDestination()
+			case "reply_bytes":
+				fs.OrderByReplyBytes()
+
 			}
 		}
 	}
