@@ -300,29 +300,18 @@ func main() {
 		for i := len(ords) - 1; i >= 0; i-- {
 			orderBy := ords[i]
 			switch orderBy {
-			case "proto":
-				fs.OrderByState()
-				fs.OrderByProtoName()
 			case "ttl":
 				fs.OrderByTTL()
-			case "state":
-				fs.OrderByTTL()
-				fs.OrderByProtoName()
-				fs.OrderByState()
 			case "orig_src":
-				fs.OrderByState()
 				fs.OrderByOriginalSPort()
 				fs.OrderByOriginalSource()
 			case "orig_dst":
-				fs.OrderByState()
 				fs.OrderByOriginalDPort()
 				fs.OrderByOriginalDestination()
 			case "reply_src":
-				fs.OrderByState()
 				fs.OrderByReplySPort()
 				fs.OrderByReplySource()
 			case "reply_dst":
-				fs.OrderByState()
 				fs.OrderByReplyDPort()
 				fs.OrderByReplyDestination()
 			}
