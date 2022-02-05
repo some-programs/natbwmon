@@ -200,25 +200,6 @@ func main() {
 		}
 	}(ctx)
 
-	mime.AddExtensionType(".woff", "font/woff")
-	mime.AddExtensionType(".woff2", "font/woff2")
-
-	serv := &Server{
-		nmapEnabled: flags.nmap,
-		ouiDB:       ouiDB,
-		clients:     clients,
-	}
-	hs := &http.Server{
-		Addr:           flags.listen,
-		ReadTimeout:    10 * time.Minute,
-		WriteTimeout:   10 * time.Minute,
-		MaxHeaderBytes: 1 << 20,
-		Handler:        serv.Routes(),
-	}
-	go func() {
-		log.Fatal().Err(hs.ListenAndServe()).Msg("")
-	}()
-
 	go func(ctx context.Context) {
 		ticker := time.NewTicker(flags.iptablesReadDuration)
 	loop:
@@ -239,6 +220,25 @@ func main() {
 			}
 		}
 	}(ctx)
+
+	mime.AddExtensionType(".woff", "font/woff")
+	mime.AddExtensionType(".woff2", "font/woff2")
+
+	serv := &Server{
+		nmapEnabled: flags.nmap,
+		ouiDB:       ouiDB,
+		clients:     clients,
+	}
+	hs := &http.Server{
+		Addr:           flags.listen,
+		ReadTimeout:    10 * time.Minute,
+		WriteTimeout:   10 * time.Minute,
+		MaxHeaderBytes: 1 << 20,
+		Handler:        serv.Routes(),
+	}
+	go func() {
+		log.Fatal().Err(hs.ListenAndServe()).Msg("")
+	}()
 
 	<-ctx.Done()
 	log.Info().Msg("shutting down...")
