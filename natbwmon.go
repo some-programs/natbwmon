@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"mime"
 	"net"
 	"net/http"
@@ -30,8 +31,7 @@ import (
 //go:embed manuf
 var manufTxt []byte
 
-// all command line flags, global state for now
-var flags = struct {
+type Flags struct {
 	chain                    string
 	LANIface                 string
 	listen                   string
@@ -43,30 +43,42 @@ var flags = struct {
 	resolveHostnamesDuration time.Duration
 	aliases                  flagutil.StringSliceFlag
 	nmap                     bool
-}{}
+	log                      log.Flags
+}
+
+func (flags *Flags) Register(fs *flag.FlagSet) {
+	fs.BoolVar(&flags.clear, "clear", false, "just clear iptables rules and chains and exit")
+	fs.StringVar(&flags.LANIface, "lan.if", "br0", "The 'LAN' interface")
+	fs.StringVar(&flags.listen, "listen", "0.0.0.0:8833", "where web server listens")
+	fs.StringVar(&flags.chain, "iptables.chain", "NATBW", "name of iptables chain to create")
+	fs.IntVar(&flags.avgSamples, "avg.samples", 8, "number of samples to create bitrate averages from")
+	fs.DurationVar(&flags.iptablesReadDuration, "iptables.read.delay", 400*time.Millisecond, "delay between reading counters from iptables rules")
+	fs.DurationVar(&flags.iptablesRulesDuration, "iptables.rules.delay", 10*time.Second, "delay between updating ip tables rules and adding new new clients")
+	fs.DurationVar(&flags.arpDuration, "arp.delay", 5*time.Second, "delay between rereading arp table to update client hardware addresses")
+	fs.DurationVar(&flags.resolveHostnamesDuration, "dns.delay", time.Minute, "delay between reresolving host names.")
+	fs.Var(&flags.aliases, "aliases", "hardware address aliases comma separated. ex: -aliases=00:00:00:00:00:00=nas.alias,00:00:00:00:00:01=server.alias")
+	fs.BoolVar(&flags.nmap, "nmap", false, "enable nmap api")
+	flags.log.Register(fs)
+
+}
+
+func (flags *Flags) Setup(out io.Writer) error {
+	if err := flags.log.Setup(); err != nil {
+		fmt.Fprintln(out, err)
+		return err
+	}
+	return nil
+}
 
 func main() {
-	var logFlags log.Flags
-
-	logFlags.Register(flag.CommandLine)
-	flag.BoolVar(&flags.clear, "clear", false, "just clear iptables rules and chains and exit")
-	flag.StringVar(&flags.LANIface, "lan.if", "br0", "The 'LAN' interface")
-	flag.StringVar(&flags.listen, "listen", "0.0.0.0:8833", "where web server listens")
-	flag.StringVar(&flags.chain, "iptables.chain", "NATBW", "name of iptables chain to create")
-	flag.IntVar(&flags.avgSamples, "avg.samples", 8, "number of samples to create bitrate averages from")
-	flag.DurationVar(&flags.iptablesReadDuration, "iptables.read.delay", 400*time.Millisecond, "delay between reading counters from iptables rules")
-	flag.DurationVar(&flags.iptablesRulesDuration, "iptables.rules.delay", 10*time.Second, "delay between updating ip tables rules and adding new new clients")
-	flag.DurationVar(&flags.arpDuration, "arp.delay", 5*time.Second, "delay between rereading arp table to update client hardware addresses")
-	flag.DurationVar(&flags.resolveHostnamesDuration, "dns.delay", time.Minute, "delay between reresolving host names.")
-	flag.Var(&flags.aliases, "aliases", "hardware address aliases comma separated. ex: -aliases=00:00:00:00:00:00=nas.alias,00:00:00:00:00:01=server.alias")
-	flag.BoolVar(&flags.nmap, "nmap", false, "enable nmap api")
-
+	var flags Flags
+	flags.Register(flag.CommandLine)
 	ff.Parse(flag.CommandLine, os.Args[1:],
 		ff.WithEnvVarPrefix("NATBWMON"),
 	)
 
-	if err := logFlags.Setup(); err != nil {
-		panic(err)
+	if err := flags.Setup(os.Stderr); err != nil {
+		log.Fatal().Err(err).Msg("")
 	}
 
 	log.Debug().Msg("application starting")
