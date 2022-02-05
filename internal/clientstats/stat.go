@@ -22,26 +22,26 @@ func (s Stat) HWAddrPrefix() string {
 }
 
 func (s Stat) InFmt() string {
-	return fmtRate(s.InRate)
+	return FmtBytes(s.InRate, "/s")
 }
 
 func (s Stat) OutFmt() string {
-	return fmtRate(s.OutRate)
+	return FmtBytes(s.OutRate, "/s")
 }
 
-func fmtRate(b float64) string {
+func FmtBytes(b float64, suffix string) string {
 	if b < 0.01 {
 		return ""
 	}
 	const unit = 1024.0
 	if b < unit {
-		return fmt.Sprintf("%.2f B/s", b)
+		return fmt.Sprintf("%.2f B%s", b, suffix)
 	}
 	div, exp := int64(unit), 0
 	for n := b / unit; n >= unit; n /= unit {
 		div *= unit
 		exp++
 	}
-	return fmt.Sprintf("%.2f %ciB/s",
-		float64(b)/float64(div), "KMGTPE"[exp])
+	return fmt.Sprintf("%.2f %ciB%s",
+		float64(b)/float64(div), "KMGTPE"[exp], suffix)
 }

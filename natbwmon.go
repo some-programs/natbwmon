@@ -115,6 +115,9 @@ func main() {
 				}
 				return "success"
 			},
+			"bytes": func(n uint64) string {
+				return clientstats.FmtBytes(float64(n), "")
+			},
 		},
 	).ParseFS(TemplateFS, "template/base.html", "template/conntrack.html")
 	if err != nil {
