@@ -127,8 +127,6 @@ func main() {
 
 	clients := mon.NewClients(flags.avgSamples)
 
-	// go pinger()
-
 	go func(ctx context.Context) {
 		ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
 		if err != nil {
