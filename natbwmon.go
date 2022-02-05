@@ -408,7 +408,6 @@ func main() {
 				return
 			}
 			w.Write([]byte("\n nmap successful exit"))
-
 		})
 	}
 

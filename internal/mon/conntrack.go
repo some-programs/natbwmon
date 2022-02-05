@@ -54,7 +54,6 @@ func (flow Flow) isLocal() bool {
 	}
 
 	return false
-
 }
 
 // isInteresting returns false if all the ends of the connections is the router
