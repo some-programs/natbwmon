@@ -53,11 +53,7 @@ func (flow Flow) isLocal() bool {
 		}
 	}
 
-	return false			f := Flow{
-				Original: newSubFlow(s.Origin, s.CounterOrigin),
-				Reply:    newSubFlow(s.Reply, s.CounterReply),
-				TTL:      uint64(*s.Timeout),
-			}
+	return false
 
 }
 
