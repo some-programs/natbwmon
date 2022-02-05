@@ -66,7 +66,7 @@ func main() {
 	errCh := make(chan error, 1)
 
 	go func() {
-		c := make(chan os.Signal)
+		c := make(chan os.Signal, 1)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 		defer signal.Stop(c)
 
@@ -86,7 +86,7 @@ func main() {
 	table.RowSeparator = false
 	table.ColumnWidths = []int{5, 5, 5, 5, 5}
 
-	statsCh := make(chan clientstats.Stats, 0)
+	statsCh := make(chan clientstats.Stats)
 
 	go func(ctx context.Context) {
 		ticker := time.NewTicker(200 * time.Millisecond)

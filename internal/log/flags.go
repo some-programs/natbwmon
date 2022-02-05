@@ -32,12 +32,14 @@ func (f *Flags) Register(fs *flag.FlagSet) {
 
 // Setup sets up logging accorind to Flags values.
 func (f Flags) Setup() error {
-	if f.Trace {
+	switch {
+	case f.Trace:
 		zerolog.SetGlobalLevel(zerolog.TraceLevel)
-	} else if f.Debug {
+	case f.Debug:
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
-	if f.FileName != "" {
+	switch {
+	case f.FileName != "":
 		w := &lumberjack.Logger{
 			Filename:   f.FileName,
 			MaxBackups: f.FileMaxBackups,
@@ -45,9 +47,9 @@ func (f Flags) Setup() error {
 			MaxAge:     f.FileMaxAge,
 		}
 		SetBlockingLogger(w)
-	} else if f.Console {
+	case f.Console:
 		SetConsoleLogger()
-	} else {
+	default:
 		SetBlockingLogger(os.Stderr)
 	}
 	return nil

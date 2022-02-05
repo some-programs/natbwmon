@@ -74,7 +74,7 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) {
 	} else {
 		count = c.in
 	}
-	db := s.Bytes - count.bytes
+	db := int64(s.Bytes) - int64(count.bytes) // TODO: could fail
 	if db < 0 {
 		// supress negative rate numbers, could potentially be caused by
 		// external reset of iptables counters, a single 0 value won't cause
