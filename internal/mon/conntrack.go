@@ -53,11 +53,17 @@ func (flow Flow) isLocal() bool {
 		}
 	}
 
-	return false
+	return false			f := Flow{
+				Original: newSubFlow(s.Origin, s.CounterOrigin),
+				Reply:    newSubFlow(s.Reply, s.CounterReply),
+				TTL:      uint64(*s.Timeout),
+			}
+
 }
 
-// isInternet returns true where
-func (flow Flow) isInternet() bool {
+// isInteresting returns false if all the ends of the connections is the router
+// itself or some similarily uninteresting item.
+func (flow Flow) isInteresting() bool {
 	for _, ip := range []net.IP{
 		flow.Original.Source,
 		flow.Original.Destination,
@@ -79,7 +85,6 @@ func (flow Flow) isRouted() bool {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -90,6 +95,17 @@ type Subflow struct {
 	DPort       int
 	Bytes       uint64
 	Packets     uint64
+}
+
+func newFlow(s ct.Con) Flow {
+	fl := Flow{
+		Original: newSubFlow(s.Origin, s.CounterOrigin),
+		Reply:    newSubFlow(s.Reply, s.CounterReply),
+	}
+	if s.Timeout != nil {
+		fl.TTL = uint64(*s.Timeout)
+	}
+	return fl
 }
 
 func newSubFlow(ipt *ct.IPTuple, counter *ct.Counter) Subflow {
@@ -135,13 +151,8 @@ func Flows() (FlowSlice, error) {
 		}
 
 		for _, s := range sessions {
-			f := Flow{
-				Original: newSubFlow(s.Origin, s.CounterOrigin),
-				Reply:    newSubFlow(s.Reply, s.CounterReply),
-				TTL:      uint64(*s.Timeout),
-			}
-
-			if f.isInternet() {
+			f := newFlow(s)
+			if f.isInteresting() {
 				fs = append(fs, f)
 			}
 
@@ -154,12 +165,8 @@ func Flows() (FlowSlice, error) {
 		}
 
 		for _, s := range sessions {
-			f := Flow{
-				Original: newSubFlow(s.Origin, s.CounterOrigin),
-				Reply:    newSubFlow(s.Reply, s.CounterReply),
-				TTL:      uint64(*s.Timeout),
-			}
-			if f.isInternet() {
+			f := newFlow(s)
+			if f.isInteresting() {
 				fs = append(fs, f)
 			}
 
