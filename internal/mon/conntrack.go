@@ -9,8 +9,6 @@ import (
 	ct "github.com/florianl/go-conntrack"
 )
 
-type FlowSlice []Flow
-
 type Flow struct {
 	Original Subflow
 	Reply    Subflow
@@ -30,34 +28,8 @@ func (flow Flow) isSNAT() bool {
 	return true
 }
 
-func (flow Flow) isDNAT() bool {
-	// Reply must go back to the source; Reply mustn't come from the WAN IP
-	if flow.Original.Source.Equal(flow.Reply.Destination) && !flow.Original.Destination.Equal(flow.Reply.Source) {
-		return true
-	}
-
-	// Taken straight from original netstat-nat, labelled "DNAT (1 interface)"
-	if !flow.Original.Source.Equal(flow.Reply.Source) && !flow.Original.Source.Equal(flow.Reply.Destination) && !flow.Original.Destination.Equal(flow.Reply.Source) && flow.Original.Destination.Equal(flow.Reply.Destination) {
-		return true
-	}
-
-	return false
-}
-
-func (flow Flow) isLocal() bool {
-	// no NAT
-	if flow.Original.Source.Equal(flow.Reply.Destination) && flow.Original.Destination.Equal(flow.Reply.Source) {
-		// At least one local address
-		if isLocalIP(flow.Original.Source) || isLocalIP(flow.Original.Destination) || isLocalIP(flow.Reply.Source) || isLocalIP(flow.Reply.Destination) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // isInteresting returns false if all the ends of the connections is the router
-// itself or some similarily uninteresting item.
+// itself or some similarily uninteresting item. Keeping multicast stuff
 func (flow Flow) isInteresting() bool {
 	for _, ip := range []net.IP{
 		flow.Original.Source,
@@ -138,7 +110,7 @@ func Flows() (FlowSlice, error) {
 		return nil, fmt.Errorf("could not create nfct: %w", err)
 	}
 	defer nfct.Close()
-	var fs FlowSlice
+	fs := make(FlowSlice, 0, 1024)
 	{
 		sessions, err := nfct.Dump(ct.Conntrack, ct.IPv4)
 		if err != nil {
@@ -170,23 +142,19 @@ func Flows() (FlowSlice, error) {
 	return fs, nil
 }
 
+type FlowSlice []Flow
+
 func (fs FlowSlice) FilterByIP(ip net.IP) FlowSlice {
-	res := fs.Filter(func(f Flow) bool {
-		if f.Original.Source.Equal(ip) {
-			return true
+	res := make(FlowSlice, 0, len(fs))
+	for _, f := range fs {
+		if f.Original.Source.Equal(ip) ||
+			f.Original.Destination.Equal(ip) ||
+			f.Reply.Source.Equal(ip) ||
+			f.Reply.Destination.Equal(ip) {
+			res = append(res, f)
 		}
-		if f.Original.Destination.Equal(ip) {
-			return true
-		}
-		if f.Reply.Source.Equal(ip) {
-			return true
-		}
-		if f.Reply.Destination.Equal(ip) {
-			return true
-		}
-		return false
-	})
-	return FlowSlice(res)
+	}
+	return res
 }
 
 func (fs FlowSlice) OrderByTTL() {
@@ -252,61 +220,5 @@ func (fs FlowSlice) OrderByReplyDestination() {
 func (fs FlowSlice) OrderByReplyBytes() {
 	sort.SliceStable(fs, func(i, j int) bool {
 		return fs[i].Reply.Bytes > fs[j].Reply.Bytes
-	})
-}
-
-type TypeFilter uint8
-
-const (
-	SNATFilter TypeFilter = 1 << iota
-	DNATFilter
-	RoutedFilter
-	LocalFilter
-)
-
-var localIPs = make([]*net.IPNet, 0)
-
-func isLocalIP(ip net.IP) bool {
-	for _, localIP := range localIPs {
-		if localIP.IP.Equal(ip) {
-			return true
-		}
-	}
-	return false
-}
-
-func init() {
-	addresses, err := net.InterfaceAddrs()
-	if err != nil {
-		panic(err)
-	}
-	for _, address := range addresses {
-		localIPs = append(localIPs, address.(*net.IPNet))
-	}
-}
-
-func (flows FlowSlice) Filter(filter func(flow Flow) bool) FlowSlice {
-	filtered := make(FlowSlice, 0, len(flows))
-
-	for _, flow := range flows {
-		if filter(flow) {
-			filtered = append(filtered, flow)
-		}
-	}
-
-	return filtered
-}
-
-func (flows FlowSlice) FilterByType(which TypeFilter) FlowSlice {
-	snat := (which & SNATFilter) > 0
-	dnat := (which & DNATFilter) > 0
-	local := (which & LocalFilter) > 0
-	routed := (which & RoutedFilter) > 0
-
-	return flows.Filter(func(flow Flow) bool {
-		return ((snat && flow.isSNAT()) ||
-			(dnat && flow.isDNAT()) ||
-			(local && flow.isLocal()) ||
-			(routed && flow.isRouted()))
 	})
 }
