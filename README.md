@@ -1,3 +1,4 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/some-programs/natbwmon.svg)](https://pkg.go.dev/github.com/some-programs/natbwmon)
 # natbwmon
 
 ## what?
