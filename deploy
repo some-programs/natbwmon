@@ -3,5 +3,4 @@
 ./run \
   -log.debug \
   -log.file.name /tmp/natbwmon.log \
-  -log.file.maxsize=10 \
   "${@}"

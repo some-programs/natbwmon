@@ -9,8 +9,11 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/benbjohnson/hashfs"
+	"github.com/justinas/alice"
+	"github.com/rs/zerolog/hlog"
 	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
@@ -38,18 +41,34 @@ type Server struct {
 }
 
 func (s *Server) Routes() *http.ServeMux {
+	c := alice.New()
+	c = c.Append(
+		hlog.NewHandler(log.Logger),
+		hlog.RequestIDHandler("req_id", "Request-Id"),
+		hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
+			l := log.WithIDWithoutCaller(r.Context()).Logger()
+			l.Info().
+				Str("caller", "http").
+				Str("method", r.Method).
+				Stringer("url", r.URL).
+				Int("status", status).
+				Int("size", size).
+				Dur("duration", duration).
+				Msg("")
+		}),
+	)
+
 	mux := http.NewServeMux()
 
-	mux.Handle("/", s.Clients())
-	mux.Handle("/conntrack", s.Conntrack())
-	mux.Handle("/v1/stats/", s.StatsV1())
+	mux.Handle("/", c.Then(s.Clients()))
+	mux.Handle("/conntrack", c.Then(s.Conntrack()))
+	mux.Handle("/v1/stats/", c.Then(s.StatsV1()))
 	if s.nmapEnabled {
-		mux.Handle("/v0/nmap/", s.NmapV0())
+		mux.Handle("/v0/nmap/", c.Then(s.NmapV0()))
 	}
-	mux.Handle("/static/", hashfs.FileServer(StaticHashFS))
+	mux.Handle("/static/", c.Then(hashfs.FileServer(StaticHashFS)))
 
 	return mux
-
 }
 
 func (s *Server) Clients() AppHandler {
