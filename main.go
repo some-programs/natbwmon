@@ -19,6 +19,7 @@ import (
 	"github.com/some-programs/natbwmon/assets"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
+	"github.com/some-programs/natbwmon/internal/server"
 	"github.com/tomruk/oui"
 )
 
@@ -29,10 +30,10 @@ type Flags struct {
 	listen                   string
 	clear                    bool
 	avgSamples               int
-	iptablesReadDuration     time.Duration
-	iptablesRulesDuration    time.Duration
-	arpDuration              time.Duration
-	resolveHostnamesDuration time.Duration
+	iptablesReadInterval     time.Duration
+	iptablesRulesInterval    time.Duration
+	arpInterval              time.Duration
+	resolveHostnamesInterval time.Duration
 	aliases                  flagutil.StringSliceFlag
 	nmap                     bool
 	log                      log.Flags
@@ -45,10 +46,10 @@ func (flags *Flags) Register(fs *flag.FlagSet) {
 	fs.StringVar(&flags.listen, "listen", "0.0.0.0:8833", "where web server listens")
 	fs.StringVar(&flags.chain, "iptables.chain", "NATBW", "name of iptables chain to create")
 	fs.IntVar(&flags.avgSamples, "avg.samples", 8, "number of samples to create bitrate averages from")
-	fs.DurationVar(&flags.iptablesReadDuration, "iptables.read.delay", 400*time.Millisecond, "delay between reading counters from iptables rules")
-	fs.DurationVar(&flags.iptablesRulesDuration, "iptables.rules.delay", 10*time.Second, "delay between updating ip tables rules and adding new new clients")
-	fs.DurationVar(&flags.arpDuration, "arp.delay", 5*time.Second, "delay between rereading arp table to update client hardware addresses")
-	fs.DurationVar(&flags.resolveHostnamesDuration, "dns.delay", time.Minute, "delay between reresolving host names.")
+	fs.DurationVar(&flags.iptablesReadInterval, "iptables.read.delay", 400*time.Millisecond, "delay between reading counters from iptables rules")
+	fs.DurationVar(&flags.iptablesRulesInterval, "iptables.rules.delay", 10*time.Second, "delay between updating ip tables rules and adding new new clients")
+	fs.DurationVar(&flags.arpInterval, "arp.delay", 5*time.Second, "delay between rereading arp table to update client hardware addresses")
+	fs.DurationVar(&flags.resolveHostnamesInterval, "dns.delay", time.Minute, "delay between reresolving host names.")
 	fs.Var(&flags.aliases, "aliases", "hardware address aliases comma separated. ex: -aliases=00:00:00:00:00:00=nas.alias,00:00:00:00:00:01=server.alias")
 	fs.BoolVar(&flags.nmap, "nmap", false, "enable nmap api")
 	flags.log.Register(fs)
@@ -130,7 +131,7 @@ func main() {
 		if err != nil {
 			log.Fatal().Err(err).Msg("")
 		}
-		ticker := time.NewTicker(flags.iptablesRulesDuration)
+		ticker := time.NewTicker(flags.iptablesRulesInterval)
 		for {
 			select {
 			case <-ticker.C:
@@ -157,7 +158,7 @@ func main() {
 			}
 		}
 		update()
-		ticker := time.NewTicker(flags.arpDuration)
+		ticker := time.NewTicker(flags.arpInterval)
 		for {
 			select {
 			case <-ticker.C:
@@ -169,7 +170,7 @@ func main() {
 	}(ctx)
 
 	go func(ctx context.Context) {
-		ticker := time.NewTicker(flags.resolveHostnamesDuration)
+		ticker := time.NewTicker(flags.resolveHostnamesInterval)
 	loop:
 		for {
 			select {
@@ -199,7 +200,7 @@ func main() {
 	}(ctx)
 
 	go func(ctx context.Context) {
-		ticker := time.NewTicker(flags.iptablesReadDuration)
+		ticker := time.NewTicker(flags.iptablesReadInterval)
 	loop:
 		for {
 			select {
@@ -222,17 +223,17 @@ func main() {
 	mime.AddExtensionType(".woff", "font/woff")
 	mime.AddExtensionType(".woff2", "font/woff2")
 
-	serv := &Server{
-		nmapEnabled: flags.nmap,
-		ouiDB:       ouiDB,
-		clients:     clients,
+	srv := &server.Server{
+		NmapEnabled: flags.nmap,
+		OuiDB:       ouiDB,
+		MonClients:  clients,
 	}
 	hs := &http.Server{
 		Addr:           flags.listen,
 		ReadTimeout:    10 * time.Minute,
 		WriteTimeout:   10 * time.Minute,
 		MaxHeaderBytes: 1 << 20,
-		Handler:        serv.Routes(),
+		Handler:        srv.Routes(),
 	}
 	go func() {
 		log.Fatal().Err(hs.ListenAndServe()).Msg("")

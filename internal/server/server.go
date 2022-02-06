@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -34,13 +34,14 @@ func (fn AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Server .
+// Server contains the web page and JSON API routes.
 type Server struct {
-	clients     *mon.Clients
-	nmapEnabled bool
-	ouiDB       *oui.DB
+	MonClients  *mon.Clients
+	NmapEnabled bool
+	OuiDB       *oui.DB
 }
 
+// Routes returns a *http.ServeMux with all the application request handlers.
 func (s *Server) Routes() *http.ServeMux {
 	c := alice.New()
 	c = c.Append(
@@ -66,7 +67,7 @@ func (s *Server) Routes() *http.ServeMux {
 	mux.Handle("/", c.Then(s.Clients()))
 	mux.Handle("/conntrack", c.Then(s.Conntrack()))
 	mux.Handle("/v1/stats/", c.Then(s.StatsV1()))
-	if s.nmapEnabled {
+	if s.NmapEnabled {
 		mux.Handle("/v0/nmap/", c.Then(s.NmapV0()))
 	}
 	mux.Handle("/static/", c.Then(hashfs.FileServer(assets.StaticHashFS)))
@@ -79,6 +80,7 @@ type clientsTemplateData struct {
 	Title string
 }
 
+// Clients serves the list of clients web page.
 func (s *Server) Clients() AppHandler {
 	tmpl, err := template.New("base.html").Funcs(
 		template.FuncMap{
@@ -86,7 +88,7 @@ func (s *Server) Clients() AppHandler {
 		},
 	).ParseFS(assets.TemplateFS, "template/base.html", "template/clients.html")
 	if err != nil {
-		log.Fatal().Err(err).Msg("parse templates")
+		log.Fatal().Err(err).Msg("failed to parse clients template")
 	}
 	return func(w http.ResponseWriter, r *http.Request) error {
 		logger := log.FromRequest(r)
@@ -110,7 +112,7 @@ type conntrackTemplateData struct {
 	IP          string
 }
 
-// Conntrack displays a page with the
+// Clients serves the connection tracking web page.
 func (s *Server) Conntrack() AppHandler {
 	templ, err := template.New("base.html").Funcs(
 		template.FuncMap{
@@ -130,7 +132,7 @@ func (s *Server) Conntrack() AppHandler {
 		},
 	).ParseFS(assets.TemplateFS, "template/base.html", "template/conntrack.html")
 	if err != nil {
-		log.Fatal().Err(err).Msg("")
+		log.Fatal().Err(err).Msg("failed to parse conntrack template")
 	}
 
 	filter := func(fs mon.FlowSlice, r *http.Request) mon.FlowSlice {
@@ -188,7 +190,7 @@ func (s *Server) Conntrack() AppHandler {
 		order(fs, r)
 
 		data := conntrackTemplateData{
-			NMAP:        s.nmapEnabled,
+			NMAP:        s.NmapEnabled,
 			IP:          r.URL.Query().Get("ip"),
 			FS:          fs,
 			Title:       "conntrack",
@@ -260,11 +262,11 @@ func (s *Server) StatsV1() AppHandler {
 
 	return func(w http.ResponseWriter, r *http.Request) error {
 		logger := log.FromRequest(r)
-		c := s.clients.Stats()
+		c := s.MonClients.Stats()
 		c = filter(c, r)
 		res := make(clientstats.Stats, 0, len(c))
 		for _, stat := range c {
-			v, err := s.ouiDB.Lookup(stat.HWAddr)
+			v, err := s.OuiDB.Lookup(stat.HWAddr)
 			if err != nil {
 				logger.Warn().Err(err).Msg("lookup error")
 			} else {
@@ -300,7 +302,7 @@ func (s *Server) StatsV1() AppHandler {
 	}
 }
 
-// NmapV0 runs a simple nmap against an ip address.
+// NmapV0 runs a predefined nmap qiery against a single IP address.
 func (s *Server) NmapV0() AppHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		logger := log.FromRequest(r)
