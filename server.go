@@ -14,6 +14,7 @@ import (
 	"github.com/benbjohnson/hashfs"
 	"github.com/justinas/alice"
 	"github.com/rs/zerolog/hlog"
+	"github.com/some-programs/natbwmon/assets"
 	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
@@ -68,17 +69,22 @@ func (s *Server) Routes() *http.ServeMux {
 	if s.nmapEnabled {
 		mux.Handle("/v0/nmap/", c.Then(s.NmapV0()))
 	}
-	mux.Handle("/static/", c.Then(hashfs.FileServer(StaticHashFS)))
+	mux.Handle("/static/", c.Then(hashfs.FileServer(assets.StaticHashFS)))
 
 	return mux
+}
+
+// clientsTemplateData .
+type clientsTemplateData struct {
+	Title string
 }
 
 func (s *Server) Clients() AppHandler {
 	tmpl, err := template.New("base.html").Funcs(
 		template.FuncMap{
-			"static": StaticHashFS.HashName,
+			"static": assets.StaticHashFS.HashName,
 		},
-	).ParseFS(TemplateFS, "template/base.html", "template/clients.html")
+	).ParseFS(assets.TemplateFS, "template/base.html", "template/clients.html")
 	if err != nil {
 		log.Fatal().Err(err).Msg("parse templates")
 	}
@@ -94,11 +100,21 @@ func (s *Server) Clients() AppHandler {
 	}
 }
 
+// conntrackTemplateData .
+type conntrackTemplateData struct {
+	Title       string
+	FS          mon.FlowSlice
+	IPFilter    string
+	OrderFilter string
+	NMAP        bool
+	IP          string
+}
+
 // Conntrack displays a page with the
 func (s *Server) Conntrack() AppHandler {
 	templ, err := template.New("base.html").Funcs(
 		template.FuncMap{
-			"static": StaticHashFS.HashName,
+			"static": assets.StaticHashFS.HashName,
 			"ipclass": func(ip net.IP) string {
 				if ip.IsLoopback() || ip.IsMulticast() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
 					return "blue"
@@ -112,7 +128,7 @@ func (s *Server) Conntrack() AppHandler {
 				return clientstats.FmtBytes(float64(n), "")
 			},
 		},
-	).ParseFS(TemplateFS, "template/base.html", "template/conntrack.html")
+	).ParseFS(assets.TemplateFS, "template/base.html", "template/conntrack.html")
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}

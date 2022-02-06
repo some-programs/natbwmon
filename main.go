@@ -16,13 +16,11 @@ import (
 
 	"github.com/go-pa/flagutil"
 	"github.com/peterbourgon/ff/v3"
+	"github.com/some-programs/natbwmon/assets"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
 	"github.com/tomruk/oui"
 )
-
-//go:embed manuf
-var manufTxt []byte
 
 // Flags contains the top level program configuration.
 type Flags struct {
@@ -120,7 +118,7 @@ func main() {
 		log.Fatal().Err(err).Msg("")
 	}
 
-	ouiDB, err := oui.NewDB(manufTxt)
+	ouiDB, err := oui.NewDB(assets.ManufTxt)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
