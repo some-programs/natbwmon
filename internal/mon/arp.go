@@ -4,9 +4,9 @@ import (
 	parp "github.com/ItsJimi/go-arp"
 )
 
-type ArpList []parp.Entry
+type Arps []parp.Entry
 
-func Arps() (ArpList, error) {
+func ReadArps() (Arps, error) {
 	all, err := parp.GetEntries()
 	if err != nil {
 		return nil, err
@@ -15,9 +15,9 @@ func Arps() (ArpList, error) {
 	return all, nil
 }
 
-func (all ArpList) FilterDeviceName(name string) ArpList {
-	var filtered ArpList
-	for _, v := range all {
+func (as Arps) FilterDeviceName(name string) Arps {
+	filtered := make(Arps, 0, len(as))
+	for _, v := range as {
 		if v.Device == name {
 			filtered = append(filtered, v)
 		}
@@ -25,9 +25,9 @@ func (all ArpList) FilterDeviceName(name string) ArpList {
 	return filtered
 }
 
-func (all ArpList) HWAddrByIP() map[string]string {
-	m := make(map[string]string, len(all))
-	for _, v := range all {
+func (as Arps) HWAddrByIP() map[string]string {
+	m := make(map[string]string, len(as))
+	for _, v := range as {
 		m[v.IPAddress] = v.HWAddress
 	}
 	return m

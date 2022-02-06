@@ -46,7 +46,7 @@ func (i *IPTables) ClearChain() error {
 
 // Update updates natbw rules according to the system arp list
 func (i *IPTables) Update() error {
-	as, err := Arps()
+	as, err := ReadArps()
 	if err != nil {
 		return err
 	}

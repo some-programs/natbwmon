@@ -148,7 +148,7 @@ func main() {
 
 	go func(ctx context.Context) {
 		update := func() {
-			arps, err := mon.Arps()
+			arps, err := mon.ReadArps()
 			if err != nil {
 				log.Info().Err(err).Msg("")
 				return
@@ -176,7 +176,7 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				arps, err := mon.Arps()
+				arps, err := mon.ReadArps()
 				if err != nil {
 					log.Info().Err(err).Msg("")
 					continue loop
