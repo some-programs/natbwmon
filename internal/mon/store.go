@@ -76,10 +76,7 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) {
 	}
 	db := s.Bytes - count.bytes
 	if count.bytes > s.Bytes {
-		// supress negative rate numbers, could potentially be caused by
-		// external reset of iptables counters, a single 0 value won't cause
-		// significant display errors.
-		log.Warn().Msgf("got negative bytes count: %v %v", s, count)
+		log.Warn().Msgf("resetting due to overflow: %v %v", s, count)
 		db = 0
 	}
 	dur := float64(timestamp.Sub(count.updatedAt))
@@ -104,6 +101,10 @@ func (c *Client) UpdateName(name string) {
 	c.Name = name
 }
 
+// Clients hold the recorded data of all known clients data.
+//
+// Access to the data is protected by a single mutex because it is expected
+// that it is enough for this use case.
 type Clients struct {
 	cs map[string]*Client
 	mu sync.Mutex
@@ -176,7 +177,7 @@ func (c *Clients) Stats() clientstats.Stats {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	var ss []clientstats.Stat
+	ss := make([]clientstats.Stat, 0, len(c.cs))
 	for _, client := range c.cs {
 		ss = append(ss, client.Stat())
 	}

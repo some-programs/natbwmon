@@ -15,21 +15,19 @@ type Flow struct {
 	TTL      uint64
 }
 
-func (flow Flow) isSNAT() bool {
-	// SNATed flows should reply to our WAN IP, not a LAN IP.
-	if flow.Original.Source.Equal(flow.Reply.Destination) {
-		return false
+func newFlow(s ct.Con) Flow {
+	fl := Flow{
+		Original: newSubFlow(s.Origin, s.CounterOrigin),
+		Reply:    newSubFlow(s.Reply, s.CounterReply),
 	}
-
-	if !flow.Original.Destination.Equal(flow.Reply.Source) {
-		return false
+	if s.Timeout != nil {
+		fl.TTL = uint64(*s.Timeout)
 	}
-
-	return true
+	return fl
 }
 
 // isInteresting returns false if all the ends of the connections is the router
-// itself or some similarily uninteresting item. Keeping multicast stuff
+// itself or some similarily uninteresting item. Keeping multicast stuff.
 func (flow Flow) isInteresting() bool {
 	for _, ip := range []net.IP{
 		flow.Original.Source,
@@ -45,10 +43,12 @@ func (flow Flow) isInteresting() bool {
 }
 
 func (flow Flow) isRouted() bool {
-	// no NAT
-	if flow.Original.Source.Equal(flow.Reply.Destination) && flow.Original.Destination.Equal(flow.Reply.Source) {
-		// No local addresses
-		if !isLocalIP(flow.Original.Source) && !isLocalIP(flow.Original.Destination) && !isLocalIP(flow.Reply.Source) && !isLocalIP(flow.Reply.Destination) {
+	if flow.Original.Source.Equal(flow.Reply.Destination) &&
+		flow.Original.Destination.Equal(flow.Reply.Source) {
+		if !isLocalIP(flow.Original.Source) &&
+			!isLocalIP(flow.Original.Destination) &&
+			!isLocalIP(flow.Reply.Source) &&
+			!isLocalIP(flow.Reply.Destination) {
 			return true
 		}
 	}
@@ -62,17 +62,6 @@ type Subflow struct {
 	DPort       int
 	Bytes       uint64
 	Packets     uint64
-}
-
-func newFlow(s ct.Con) Flow {
-	fl := Flow{
-		Original: newSubFlow(s.Origin, s.CounterOrigin),
-		Reply:    newSubFlow(s.Reply, s.CounterReply),
-	}
-	if s.Timeout != nil {
-		fl.TTL = uint64(*s.Timeout)
-	}
-	return fl
 }
 
 func newSubFlow(ipt *ct.IPTuple, counter *ct.Counter) Subflow {
@@ -112,31 +101,27 @@ func Flows() (FlowSlice, error) {
 	defer nfct.Close()
 	fs := make(FlowSlice, 0, 1024)
 	{
-		sessions, err := nfct.Dump(ct.Conntrack, ct.IPv4)
+		cons, err := nfct.Dump(ct.Conntrack, ct.IPv4)
 		if err != nil {
 			return nil, fmt.Errorf("could not dump sessions: %w", err)
 		}
-
-		for _, s := range sessions {
+		for _, s := range cons {
 			f := newFlow(s)
 			if f.isInteresting() {
 				fs = append(fs, f)
 			}
-
 		}
 	}
 	{
-		sessions, err := nfct.Dump(ct.Conntrack, ct.IPv6)
+		cons, err := nfct.Dump(ct.Conntrack, ct.IPv6)
 		if err != nil {
 			return nil, fmt.Errorf("could not dump sessions: %w", err)
 		}
-
-		for _, s := range sessions {
+		for _, s := range cons {
 			f := newFlow(s)
 			if f.isInteresting() {
 				fs = append(fs, f)
 			}
-
 		}
 	}
 	return fs, nil

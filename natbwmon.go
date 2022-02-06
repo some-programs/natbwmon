@@ -24,6 +24,7 @@ import (
 //go:embed manuf
 var manufTxt []byte
 
+// Flags contains the top level program configuration.
 type Flags struct {
 	chain                    string
 	LANIface                 string
@@ -39,6 +40,7 @@ type Flags struct {
 	log                      log.Flags
 }
 
+// Register registers the flags into a FlagSet.
 func (flags *Flags) Register(fs *flag.FlagSet) {
 	fs.BoolVar(&flags.clear, "clear", false, "just clear iptables rules and chains and exit")
 	fs.StringVar(&flags.LANIface, "lan.if", "br0", "The 'LAN' interface")
@@ -52,9 +54,9 @@ func (flags *Flags) Register(fs *flag.FlagSet) {
 	fs.Var(&flags.aliases, "aliases", "hardware address aliases comma separated. ex: -aliases=00:00:00:00:00:00=nas.alias,00:00:00:00:00:01=server.alias")
 	fs.BoolVar(&flags.nmap, "nmap", false, "enable nmap api")
 	flags.log.Register(fs)
-
 }
 
+// Setup must be run after the flags are parsed.
 func (flags *Flags) Setup(out io.Writer) error {
 	if err := flags.log.Setup(); err != nil {
 		fmt.Fprintln(out, err)

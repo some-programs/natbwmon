@@ -1,6 +1,6 @@
 package mon
 
-// TODO: global state
+// TODO: quick hack global state
 var AliasesMap map[string]string
 
 func init() {

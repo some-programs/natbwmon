@@ -90,12 +90,11 @@ func (s *Server) Clients() AppHandler {
 		}
 		return nil
 	}
-
 }
 
+// Conntrack displays a page with the
 func (s *Server) Conntrack() AppHandler {
-
-	conntrackTempl, err := template.New("base.html").Funcs(
+	templ, err := template.New("base.html").Funcs(
 		template.FuncMap{
 			"static": StaticHashFS.HashName,
 			"ipclass": func(ip net.IP) string {
@@ -177,16 +176,17 @@ func (s *Server) Conntrack() AppHandler {
 			IPFilter:    r.URL.Query().Get("ip"),
 			OrderFilter: r.URL.Query().Get("o"),
 		}
-		err = conntrackTempl.Execute(w, &data)
+		err = templ.Execute(w, &data)
 		if err != nil {
 			log.Info().Err(err).Msg("render conntrack")
 			return err
 		}
 		return nil
 	}
-
 }
 
+// StatsV1 is an API resource that returns a JSON encoded respons with the
+// current list of identified network devices and their current bandwidth rate.
 func (s *Server) StatsV1() AppHandler {
 	order := func(s clientstats.Stats, r *http.Request) {
 		s.OrderByIP()
@@ -215,7 +215,7 @@ func (s *Server) StatsV1() AppHandler {
 		if len(IPs) == 0 && len(HWAddrs) == 0 && len(names) == 0 {
 			return ss
 		}
-		var res clientstats.Stats
+		res := make(clientstats.Stats, 0, len(ss))
 	loop:
 		for _, s := range ss {
 			for _, v := range IPs {
@@ -243,7 +243,7 @@ func (s *Server) StatsV1() AppHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		c := s.clients.Stats()
 		c = filter(c, r)
-		var res clientstats.Stats
+		res := make(clientstats.Stats, 0, len(c))
 		for _, stat := range c {
 			v, err := s.ouiDB.Lookup(stat.HWAddr)
 			if err != nil {
@@ -281,7 +281,7 @@ func (s *Server) StatsV1() AppHandler {
 	}
 }
 
-// experimental v0 api, subject to change
+// NmapV0 runs a simple nmap against an ip address.
 func (s *Server) NmapV0() AppHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		ipStr := r.URL.Query().Get("ip")
@@ -306,7 +306,6 @@ func (s *Server) NmapV0() AppHandler {
 		w.Write([]byte("\n nmap successful exit"))
 		return nil
 	}
-
 }
 
 // maxBytesReaderMiddleware .
