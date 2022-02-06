@@ -53,7 +53,8 @@ func (s *Server) Routes() *http.ServeMux {
 				Stringer("url", r.URL).
 				Int("status", status).
 				Int("size", size).
-				Dur("duration", duration).
+				Dur("dur", duration).
+				Str("addr", r.RemoteAddr).
 				Msg("")
 		}),
 		MaxBytesReaderMiddleware(1024*1024),
