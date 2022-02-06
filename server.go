@@ -83,10 +83,11 @@ func (s *Server) Clients() AppHandler {
 		log.Fatal().Err(err).Msg("parse templates")
 	}
 	return func(w http.ResponseWriter, r *http.Request) error {
+		logger := log.FromRequest(r)
 		d := clientsTemplateData{}
 		err := tmpl.Execute(w, &d)
 		if err != nil {
-			log.Info().Err(err).Msg("")
+			logger.Info().Err(err).Msg("")
 			return err
 		}
 		return nil
@@ -159,9 +160,10 @@ func (s *Server) Conntrack() AppHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		conntrackMu.Lock()
 		defer conntrackMu.Unlock()
+		logger := log.FromRequest(r)
 		fs, err := mon.Flows()
 		if err != nil {
-			log.Info().Err(err).Msg("")
+			logger.Info().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return nil
@@ -177,9 +179,8 @@ func (s *Server) Conntrack() AppHandler {
 			IPFilter:    r.URL.Query().Get("ip"),
 			OrderFilter: r.URL.Query().Get("o"),
 		}
-		err = templ.Execute(w, &data)
-		if err != nil {
-			log.Info().Err(err).Msg("render conntrack")
+		if err := templ.Execute(w, &data); err != nil {
+			logger.Info().Err(err).Msg("render conntrack")
 			return err
 		}
 		return nil
@@ -242,20 +243,21 @@ func (s *Server) StatsV1() AppHandler {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		logger := log.FromRequest(r)
 		c := s.clients.Stats()
 		c = filter(c, r)
 		res := make(clientstats.Stats, 0, len(c))
 		for _, stat := range c {
 			v, err := s.ouiDB.Lookup(stat.HWAddr)
 			if err != nil {
-				log.Warn().Err(err).Msg("lookup error")
+				logger.Warn().Err(err).Msg("lookup error")
 			} else {
 				stat.Manufacturer = v
 			}
 			if stat.Manufacturer == "" {
 				hwa, err := net.ParseMAC(stat.HWAddr)
 				if err != nil {
-					log.Error().Err(err).Msg("error parsing hardware addr")
+					logger.Error().Err(err).Msg("error parsing hardware addr")
 				} else {
 					switch {
 					case (hwa[0] & 1) > 0:
@@ -270,7 +272,7 @@ func (s *Server) StatsV1() AppHandler {
 		order(res, r)
 		data, err := json.Marshal(&res)
 		if err != nil {
-			log.Info().Err(err).Msg("")
+			logger.Info().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return nil
@@ -285,10 +287,11 @@ func (s *Server) StatsV1() AppHandler {
 // NmapV0 runs a simple nmap against an ip address.
 func (s *Server) NmapV0() AppHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
+		logger := log.FromRequest(r)
 		ipStr := r.URL.Query().Get("ip")
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
-			log.Info().Str("ip", ipStr).Msg("could not parse ip argument")
+			logger.Info().Str("ip", ipStr).Msg("could not parse ip argument")
 			w.WriteHeader(http.StatusBadRequest)
 			return nil
 		}
@@ -301,7 +304,7 @@ func (s *Server) NmapV0() AppHandler {
 		cmd.Stderr = w
 		err := cmd.Run()
 		if err != nil {
-			log.Error().Err(err).Str("ip", ipStr).Msg("nmap failed")
+			logger.Error().Err(err).Str("ip", ipStr).Msg("nmap failed")
 			return nil
 		}
 		w.Write([]byte("\n nmap successful exit"))
