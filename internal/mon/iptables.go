@@ -8,7 +8,8 @@ import (
 	"github.com/some-programs/natbwmon/internal/log"
 )
 
-// IPTables .
+// IPTables takes care of managing iptables rules for tracking per client
+// bandwidth usage.
 type IPTables struct {
 	ipt   *iptables.IPTables
 	chain string
