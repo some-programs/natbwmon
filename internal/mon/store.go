@@ -53,15 +53,10 @@ func (c *Client) Stat() clientstats.Stat {
 		ir = 0
 	}
 
-	alias := AliasesMap[c.HWAddr]
-	name := c.Name
-	if alias != "" {
-		name = alias
-	}
 	return clientstats.Stat{
 		IP:      c.IP,
 		HWAddr:  c.HWAddr,
-		Name:    name,
+		Name:    c.Name,
 		OutRate: or,
 		InRate:  ir,
 	}
@@ -109,13 +104,15 @@ type Clients struct {
 	cs map[string]*Client
 	mu sync.Mutex
 
-	avgSamples int
+	avgSamples  int
+	hostAliases map[string]string
 }
 
-func NewClients(avgSamples int) *Clients {
+func NewClients(avgSamples int, hostAliases map[string]string) *Clients {
 	return &Clients{
-		cs:         make(map[string]*Client, 0),
-		avgSamples: avgSamples,
+		cs:          make(map[string]*Client, 0),
+		avgSamples:  avgSamples,
+		hostAliases: hostAliases,
 	}
 }
 
@@ -179,7 +176,11 @@ func (c *Clients) Stats() clientstats.Stats {
 
 	ss := make([]clientstats.Stat, 0, len(c.cs))
 	for _, client := range c.cs {
-		ss = append(ss, client.Stat())
+		stat := client.Stat()
+		if alias, ok := c.hostAliases[stat.HWAddr]; ok {
+			stat.Name = alias
+		}
+		ss = append(ss, stat)
 	}
 	return ss
 }

@@ -89,13 +89,14 @@ func main() {
 		}
 	}(ctx)
 
+	hostAliases := make(map[string]string, 0)
 	for _, v := range flags.aliases {
 		ss := strings.SplitN(v, "=", 2)
 		if len(ss) != 2 {
 			fmt.Println("invalid alias specification:", v)
 			os.Exit(1)
 		}
-		mon.AliasesMap[ss[0]] = ss[1]
+		hostAliases[ss[0]] = ss[1]
 	}
 
 	ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
@@ -124,7 +125,7 @@ func main() {
 		log.Fatal().Err(err).Msg("")
 	}
 
-	clients := mon.NewClients(flags.avgSamples)
+	clients := mon.NewClients(flags.avgSamples, hostAliases)
 
 	go func(ctx context.Context) {
 		ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
