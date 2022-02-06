@@ -19,9 +19,9 @@
   {{range .FS }}
   <tr>
     <td>{{ .TTL }}</td>
-    <td class="{{ ipclass .Original.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Original.Source }}">{{ .Original.Source }}</a>:{{ .Original.SPort }}</td>
-    <td class="{{ ipclass .Original.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Original.Destination }}">{{ .Original.Destination }}</a>:{{ .Original.DPort }}</td>
-    <td>{{ bytes .Original.Bytes }}</td>
+    <td class="{{ ipclass .Orig.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Orig.Source }}">{{ .Orig.Source }}</a>:{{ .Orig.SPort }}</td>
+    <td class="{{ ipclass .Orig.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Orig.Destination }}">{{ .Orig.Destination }}</a>:{{ .Orig.DPort }}</td>
+    <td>{{ bytes .Orig.Bytes }}</td>
     <td class="{{ ipclass .Reply.Source }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Reply.Source }}">{{ .Reply.Source }}</a>:{{ .Reply.SPort }}</td>
     <td class="{{ ipclass .Reply.Destination }}"><a href="/conntrack?o={{ $.OrderFilter }}&ip={{ .Reply.Destination }}">{{ .Reply.Destination }}</a>:{{ .Reply.DPort }}</td>
     <td>{{ bytes .Reply.Bytes }}</td>

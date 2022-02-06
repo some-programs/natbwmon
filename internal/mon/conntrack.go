@@ -10,14 +10,14 @@ import (
 )
 
 type Flow struct {
-	Original Subflow
+	Orig Subflow
 	Reply    Subflow
 	TTL      uint64
 }
 
 func newFlow(s ct.Con) Flow {
 	fl := Flow{
-		Original: newSubFlow(s.Origin, s.CounterOrigin),
+		Orig: newSubFlow(s.Origin, s.CounterOrigin),
 		Reply:    newSubFlow(s.Reply, s.CounterReply),
 	}
 	if s.Timeout != nil {
@@ -30,8 +30,8 @@ func newFlow(s ct.Con) Flow {
 // itself or some similarily uninteresting item. Keeping multicast stuff.
 func (flow Flow) isInteresting() bool {
 	for _, ip := range []net.IP{
-		flow.Original.Source,
-		flow.Original.Destination,
+		flow.Orig.Source,
+		flow.Orig.Destination,
 		flow.Reply.Source,
 		flow.Reply.Destination,
 	} {
@@ -43,10 +43,10 @@ func (flow Flow) isInteresting() bool {
 }
 
 func (flow Flow) isRouted() bool {
-	if flow.Original.Source.Equal(flow.Reply.Destination) &&
-		flow.Original.Destination.Equal(flow.Reply.Source) {
-		if !isLocalIP(flow.Original.Source) &&
-			!isLocalIP(flow.Original.Destination) &&
+	if flow.Orig.Source.Equal(flow.Reply.Destination) &&
+		flow.Orig.Destination.Equal(flow.Reply.Source) {
+		if !isLocalIP(flow.Orig.Source) &&
+			!isLocalIP(flow.Orig.Destination) &&
 			!isLocalIP(flow.Reply.Source) &&
 			!isLocalIP(flow.Reply.Destination) {
 			return true
@@ -132,8 +132,8 @@ type FlowSlice []Flow
 func (fs FlowSlice) FilterByIP(ip net.IP) FlowSlice {
 	res := make(FlowSlice, 0, len(fs))
 	for _, f := range fs {
-		if f.Original.Source.Equal(ip) ||
-			f.Original.Destination.Equal(ip) ||
+		if f.Orig.Source.Equal(ip) ||
+			f.Orig.Destination.Equal(ip) ||
 			f.Reply.Source.Equal(ip) ||
 			f.Reply.Destination.Equal(ip) {
 			res = append(res, f)
@@ -150,31 +150,31 @@ func (fs FlowSlice) OrderByTTL() {
 
 func (fs FlowSlice) OrderByOriginalSPort() {
 	sort.SliceStable(fs, func(i, j int) bool {
-		return fs[i].Original.SPort < fs[j].Original.SPort
+		return fs[i].Orig.SPort < fs[j].Orig.SPort
 	})
 }
 
 func (fs FlowSlice) OrderByOriginalSource() {
 	sort.SliceStable(fs, func(i, j int) bool {
-		return bytes.Compare(fs[i].Original.Source, fs[j].Original.Source) < 0
+		return bytes.Compare(fs[i].Orig.Source, fs[j].Orig.Source) < 0
 	})
 }
 
 func (fs FlowSlice) OrderByOriginalDPort() {
 	sort.SliceStable(fs, func(i, j int) bool {
-		return fs[i].Original.DPort < fs[j].Original.DPort
+		return fs[i].Orig.DPort < fs[j].Orig.DPort
 	})
 }
 
 func (fs FlowSlice) OrderByOriginalDestination() {
 	sort.SliceStable(fs, func(i, j int) bool {
-		return bytes.Compare(fs[i].Original.Destination, fs[j].Original.Destination) < 0
+		return bytes.Compare(fs[i].Orig.Destination, fs[j].Orig.Destination) < 0
 	})
 }
 
 func (fs FlowSlice) OrderByOriginalBytes() {
 	sort.SliceStable(fs, func(i, j int) bool {
-		return fs[i].Original.Bytes > fs[j].Original.Bytes
+		return fs[i].Orig.Bytes > fs[j].Orig.Bytes
 	})
 }
 
