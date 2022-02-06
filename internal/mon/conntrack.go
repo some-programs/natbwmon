@@ -10,45 +10,48 @@ import (
 )
 
 type Flow struct {
-	Orig Subflow
-	Reply    Subflow
-	TTL      uint64
+	Orig  Subflow
+	Reply Subflow
+	TTL   uint64
 }
 
-func newFlow(s ct.Con) Flow {
-	fl := Flow{
-		Orig: newSubFlow(s.Origin, s.CounterOrigin),
-		Reply:    newSubFlow(s.Reply, s.CounterReply),
+func newFlow(c ct.Con) Flow {
+	f := Flow{
+		Orig:  newSubFlow(c.Origin, c.CounterOrigin),
+		Reply: newSubFlow(c.Reply, c.CounterReply),
 	}
-	if s.Timeout != nil {
-		fl.TTL = uint64(*s.Timeout)
+	if c.Timeout != nil {
+		f.TTL = uint64(*c.Timeout)
 	}
-	return fl
+	return f
 }
 
 // isInteresting returns false if all the ends of the connections is the router
 // itself or some similarily uninteresting item. Keeping multicast stuff.
-func (flow Flow) isInteresting() bool {
+func (f Flow) isInteresting() bool {
 	for _, ip := range []net.IP{
-		flow.Orig.Source,
-		flow.Orig.Destination,
-		flow.Reply.Source,
-		flow.Reply.Destination,
+		f.Orig.Source,
+		f.Orig.Destination,
+		f.Reply.Source,
+		f.Reply.Destination,
 	} {
-		if !(ip.IsUnspecified() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || isLocalIP(ip)) {
+		if !(ip.IsUnspecified() ||
+			ip.IsLoopback() ||
+			ip.IsLinkLocalUnicast() ||
+			isLocalIP(ip)) {
 			return true
 		}
 	}
 	return false
 }
 
-func (flow Flow) isRouted() bool {
-	if flow.Orig.Source.Equal(flow.Reply.Destination) &&
-		flow.Orig.Destination.Equal(flow.Reply.Source) {
-		if !isLocalIP(flow.Orig.Source) &&
-			!isLocalIP(flow.Orig.Destination) &&
-			!isLocalIP(flow.Reply.Source) &&
-			!isLocalIP(flow.Reply.Destination) {
+func (f Flow) isRouted() bool {
+	if f.Orig.Source.Equal(f.Reply.Destination) &&
+		f.Orig.Destination.Equal(f.Reply.Source) {
+		if !isLocalIP(f.Orig.Source) &&
+			!isLocalIP(f.Orig.Destination) &&
+			!isLocalIP(f.Reply.Source) &&
+			!isLocalIP(f.Reply.Destination) {
 			return true
 		}
 	}
@@ -93,6 +96,8 @@ func newSubFlow(ipt *ct.IPTuple, counter *ct.Counter) Subflow {
 	return sf
 }
 
+// Flows returns the current connections that might be interesting to display
+// to the user.
 func Flows() (FlowSlice, error) {
 	nfct, err := ct.Open(&ct.Config{})
 	if err != nil {
@@ -127,6 +132,7 @@ func Flows() (FlowSlice, error) {
 	return fs, nil
 }
 
+// FlowSlice provides filtering and ordering methods.
 type FlowSlice []Flow
 
 func (fs FlowSlice) FilterByIP(ip net.IP) FlowSlice {
