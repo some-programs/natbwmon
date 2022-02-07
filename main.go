@@ -17,6 +17,7 @@ import (
 	"github.com/go-pa/flagutil"
 	"github.com/peterbourgon/ff/v3"
 	"github.com/some-programs/natbwmon/assets"
+	"github.com/some-programs/natbwmon/internal/arp"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
 	"github.com/some-programs/natbwmon/internal/server"
@@ -115,7 +116,12 @@ func main() {
 		log.Fatal().Err(err).Msg("")
 	}
 
-	if err := ipt.Update(); err != nil {
+	arps, err := arp.Get()
+	if err != nil {
+		log.Fatal().Err(err).Msg("")
+	}
+
+	if err := ipt.Update(arps); err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
 
@@ -136,8 +142,11 @@ func main() {
 			for {
 				select {
 				case <-ticker.C:
-					err := ipt.Update()
+					arps, err := arp.Get()
 					if err != nil {
+						log.Warn().Err(err).Msg("")
+					}
+					if err := ipt.Update(arps); err != nil {
 						log.Info().Err(err).Msg("")
 					}
 				case <-ctx.Done():
@@ -150,7 +159,7 @@ func main() {
 	if flags.arpInterval > 0 {
 		go func(ctx context.Context) {
 			update := func() {
-				arps, err := mon.ReadArps()
+				arps, err := arp.Get()
 				if err != nil {
 					log.Info().Err(err).Msg("")
 					return
@@ -180,7 +189,7 @@ func main() {
 			for {
 				select {
 				case <-ticker.C:
-					arps, err := mon.ReadArps()
+					arps, err := arp.Get()
 					if err != nil {
 						log.Info().Err(err).Msg("")
 						continue loop

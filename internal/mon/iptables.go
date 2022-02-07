@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-iptables/iptables"
+	"github.com/some-programs/natbwmon/internal/arp"
 	"github.com/some-programs/natbwmon/internal/log"
 )
 
@@ -45,12 +46,8 @@ func (i *IPTables) ClearChain() error {
 }
 
 // Update updates natbw rules according to the system arp list
-func (i *IPTables) Update() error {
-	as, err := ReadArps()
-	if err != nil {
-		return err
-	}
-	as = as.FilterDeviceName(i.netif)
+func (i *IPTables) Update(arps arp.Entries) error {
+	arps = arps.FilterDeviceName(i.netif)
 
 	ok, err := i.ipt.Exists("filter", "FORWARD", "-j", i.chain)
 	if err != nil {
@@ -63,7 +60,7 @@ func (i *IPTables) Update() error {
 		}
 	}
 aloop:
-	for _, a := range as {
+	for _, a := range arps {
 		if err := i.ipt.AppendUnique("filter", i.chain, "-d", a.IPAddress, "-j", "RETURN"); err != nil {
 			log.Error().Err(err).Msg("")
 			continue aloop

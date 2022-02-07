@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	parp "github.com/ItsJimi/go-arp"
 	"github.com/coreos/go-iptables/iptables"
 	"github.com/mxmCherry/movavg"
+	"github.com/some-programs/natbwmon/internal/arp"
 	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/log"
 )
@@ -86,7 +86,7 @@ func (c *Client) UpdateIPTables(s iptables.Stat, timestamp time.Time) {
 	c.UpdatedAt = time.Now()
 }
 
-func (c *Client) UpdateArp(a parp.Entry) {
+func (c *Client) UpdateArp(a arp.Entry) {
 	c.UpdatedAt = time.Now()
 	c.HWAddr = a.HWAddress
 }
@@ -137,7 +137,7 @@ func (c *Clients) UpdateIPTables(stats IPTStats) error {
 	return nil
 }
 
-func (c *Clients) UpdateArp(as []parp.Entry) error {
+func (c *Clients) UpdateArp(as arp.Entries) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

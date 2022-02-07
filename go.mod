@@ -3,7 +3,6 @@ module github.com/some-programs/natbwmon
 go 1.17
 
 require (
-	github.com/ItsJimi/go-arp v0.0.0-20201012204938-e64e09dca888
 	github.com/benbjohnson/hashfs v0.2.1
 	github.com/coreos/go-iptables v0.6.0
 	github.com/florianl/go-conntrack v0.3.0
