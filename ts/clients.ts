@@ -68,7 +68,9 @@ updateData();
 
 const t = setInterval(async function () {
   if (document.getSelection()?.type !== "Range") {
-    await updateData();
+    if (!document.hidden) {
+      await updateData();
+    }
   }
 }, 900);
 
