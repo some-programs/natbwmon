@@ -236,7 +236,8 @@ func main() {
 		Handler:        srv.Routes(),
 	}
 	go func() {
-		log.Fatal().Err(hs.ListenAndServe()).Msg("")
+		defer cancel()
+		log.Error().Err(hs.ListenAndServe()).Msg("")
 	}()
 
 	<-ctx.Done()
