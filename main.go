@@ -126,99 +126,106 @@ func main() {
 
 	clients := mon.NewClients(flags.avgSamples, hostAliases)
 
-	go func(ctx context.Context) {
-		ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
-		if err != nil {
-			log.Fatal().Err(err).Msg("")
-		}
-		ticker := time.NewTicker(flags.iptablesRulesInterval)
-		for {
-			select {
-			case <-ticker.C:
-				err := ipt.Update()
-				if err != nil {
-					log.Info().Err(err).Msg("")
-				}
-			case <-ctx.Done():
-				return
-			}
-		}
-	}(ctx)
-
-	go func(ctx context.Context) {
-		update := func() {
-			arps, err := mon.ReadArps()
+	if flags.iptablesRulesInterval > 0 {
+		go func(ctx context.Context) {
+			ipt, err := mon.NewIPTables(flags.chain, flags.LANIface)
 			if err != nil {
-				log.Info().Err(err).Msg("")
-				return
+				log.Fatal().Err(err).Msg("")
 			}
-			arps = arps.FilterDeviceName(flags.LANIface)
-			if err := clients.UpdateArp(arps); err != nil {
-				log.Info().Err(err).Msg("update arp failed")
-			}
-		}
-		update()
-		ticker := time.NewTicker(flags.arpInterval)
-		for {
-			select {
-			case <-ticker.C:
-				update()
-			case <-ctx.Done():
-				return
-			}
-		}
-	}(ctx)
-
-	go func(ctx context.Context) {
-		ticker := time.NewTicker(flags.resolveHostnamesInterval)
-	loop:
-		for {
-			select {
-			case <-ticker.C:
-				arps, err := mon.ReadArps()
-				if err != nil {
-					log.Info().Err(err).Msg("")
-					continue loop
-				}
-				arps = arps.FilterDeviceName(flags.LANIface)
-				names := make(map[string]string, len(arps))
-				for _, v := range arps {
-					name, err := mon.ResolveHostname(v.IPAddress)
+			ticker := time.NewTicker(flags.iptablesRulesInterval)
+			for {
+				select {
+				case <-ticker.C:
+					err := ipt.Update()
 					if err != nil {
 						log.Info().Err(err).Msg("")
 					}
-					names[v.IPAddress] = name
+				case <-ctx.Done():
+					return
 				}
-				if err := clients.UpdateNames(names); err != nil {
-					log.Info().Err(err).Msg("update names failed")
-				}
-
-			case <-ctx.Done():
-				return
 			}
-		}
-	}(ctx)
+		}(ctx)
+	}
 
-	go func(ctx context.Context) {
-		ticker := time.NewTicker(flags.iptablesReadInterval)
-	loop:
-		for {
-			select {
-			case <-ticker.C:
-				next, err := ipt.Stats()
+	if flags.arpInterval > 0 {
+		go func(ctx context.Context) {
+			update := func() {
+				arps, err := mon.ReadArps()
 				if err != nil {
 					log.Info().Err(err).Msg("")
-					continue loop
+					return
 				}
-				if err = clients.UpdateIPTables(next); err != nil {
-					log.Info().Err(err).Msg("")
-					continue loop
+				arps = arps.FilterDeviceName(flags.LANIface)
+				if err := clients.UpdateArp(arps); err != nil {
+					log.Info().Err(err).Msg("update arp failed")
 				}
-			case <-ctx.Done():
-				return
 			}
-		}
-	}(ctx)
+			update()
+			ticker := time.NewTicker(flags.arpInterval)
+			for {
+				select {
+				case <-ticker.C:
+					update()
+				case <-ctx.Done():
+					return
+				}
+			}
+		}(ctx)
+	}
+
+	if flags.resolveHostnamesInterval > 0 {
+		go func(ctx context.Context) {
+			ticker := time.NewTicker(flags.resolveHostnamesInterval)
+		loop:
+			for {
+				select {
+				case <-ticker.C:
+					arps, err := mon.ReadArps()
+					if err != nil {
+						log.Info().Err(err).Msg("")
+						continue loop
+					}
+					arps = arps.FilterDeviceName(flags.LANIface)
+					names := make(map[string]string, len(arps))
+					for _, v := range arps {
+						name, err := mon.ResolveHostname(v.IPAddress)
+						if err != nil {
+							log.Info().Err(err).Msg("")
+						}
+						names[v.IPAddress] = name
+					}
+					if err := clients.UpdateNames(names); err != nil {
+						log.Info().Err(err).Msg("update names failed")
+					}
+				case <-ctx.Done():
+					return
+				}
+			}
+		}(ctx)
+	}
+
+	if flags.iptablesReadInterval > 0 {
+		go func(ctx context.Context) {
+			ticker := time.NewTicker(flags.iptablesReadInterval)
+		loop:
+			for {
+				select {
+				case <-ticker.C:
+					next, err := ipt.Stats()
+					if err != nil {
+						log.Info().Err(err).Msg("")
+						continue loop
+					}
+					if err = clients.UpdateIPTables(next); err != nil {
+						log.Info().Err(err).Msg("")
+						continue loop
+					}
+				case <-ctx.Done():
+					return
+				}
+			}
+		}(ctx)
+	}
 
 	mime.AddExtensionType(".woff", "font/woff")
 	mime.AddExtensionType(".woff2", "font/woff2")
