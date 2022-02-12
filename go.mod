@@ -15,6 +15,8 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )
 
+require github.com/matryer/is v1.4.0 // indirect
+
 require (
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/josharian/native v1.0.0 // indirect
