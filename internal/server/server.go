@@ -18,14 +18,13 @@ import (
 	"github.com/some-programs/natbwmon/internal/clientstats"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
-	"github.com/tomruk/oui"
 )
 
 // Server contains the web page and JSON API routes.
 type Server struct {
 	MonClients  *mon.Clients
 	NmapEnabled bool
-	OuiDB       *oui.DB
+	OUILookup   func(s string) (string, error)
 }
 
 // Routes returns a *http.ServeMux with all the application request handlers.
@@ -253,7 +252,7 @@ func (s *Server) StatsV1() AppHandler {
 		c = filter(c, r)
 		res := make(clientstats.Stats, 0, len(c))
 		for _, stat := range c {
-			v, err := s.OuiDB.Lookup(stat.HWAddr)
+			v, err := s.OUILookup(stat.HWAddr)
 			if err != nil {
 				logger.Warn().Err(err).Msg("lookup error")
 			} else {

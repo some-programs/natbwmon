@@ -241,7 +241,7 @@ func main() {
 
 	srv := &server.Server{
 		NmapEnabled: flags.nmap,
-		OuiDB:       ouiDB,
+		OUILookup:   ouiDB.Lookup,
 		MonClients:  clients,
 	}
 	hs := &http.Server{
