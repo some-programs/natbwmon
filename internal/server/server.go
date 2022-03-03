@@ -21,19 +21,6 @@ import (
 	"github.com/tomruk/oui"
 )
 
-// AppHandler adds generic error handling to a handler func.
-//
-// A handler func that writes it's own error response should typically not return an error.
-//
-type AppHandler func(http.ResponseWriter, *http.Request) error
-
-func (fn AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := fn(w, r); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-	}
-}
-
 // Server contains the web page and JSON API routes.
 type Server struct {
 	MonClients  *mon.Clients
@@ -328,25 +315,4 @@ func (s *Server) NmapV0() AppHandler {
 		w.Write([]byte("\n nmap successful exit"))
 		return nil
 	}
-}
-
-// maxBytesReaderMiddleware .
-type maxBytesReaderMiddleware struct {
-	h http.Handler
-	N int64
-}
-
-func (b maxBytesReaderMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	r.Body = http.MaxBytesReader(w, r.Body, b.N)
-	b.h.ServeHTTP(w, r)
-}
-
-func MaxBytesReaderMiddleware(maxSize int64) func(h http.Handler) http.Handler {
-	if maxSize <= 0 {
-		log.Fatal().Msgf("maxSize cannot be equal or less than 0: %v", maxSize)
-	}
-	fn := func(h http.Handler) http.Handler {
-		return maxBytesReaderMiddleware{h: h, N: maxSize}
-	}
-	return fn
 }
