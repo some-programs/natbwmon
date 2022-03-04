@@ -68,19 +68,19 @@ type clientsTemplateData struct {
 
 // Clients serves the list of clients web page.
 func (s *Server) Clients() AppHandler {
-	tmpl, err := template.New("base.html").Funcs(
-		template.FuncMap{
+	tmpl, err := template.New("base.html").
+		Funcs(template.FuncMap{
 			"static": assets.StaticHashFS.HashName,
 		},
-	).ParseFS(assets.TemplateFS, "template/base.html", "template/clients.html")
+		).
+		ParseFS(assets.TemplateFS, "template/base.html", "template/clients.html")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to parse clients template")
 	}
 	return func(w http.ResponseWriter, r *http.Request) error {
 		logger := log.FromRequest(r)
 		d := clientsTemplateData{}
-		err := tmpl.Execute(w, &d)
-		if err != nil {
+		if err := tmpl.Execute(w, &d); err != nil {
 			logger.Info().Err(err).Msg("")
 			return err
 		}
@@ -100,8 +100,8 @@ type conntrackTemplateData struct {
 
 // Clients serves the connection tracking web page.
 func (s *Server) Conntrack() AppHandler {
-	templ, err := template.New("base.html").Funcs(
-		template.FuncMap{
+	templ, err := template.New("base.html").
+		Funcs(template.FuncMap{
 			"static": assets.StaticHashFS.HashName,
 			"ipclass": func(ip net.IP) string {
 				if ip.IsLoopback() || ip.IsMulticast() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
@@ -116,7 +116,8 @@ func (s *Server) Conntrack() AppHandler {
 				return clientstats.FmtBytes(float64(n), "")
 			},
 		},
-	).ParseFS(assets.TemplateFS, "template/base.html", "template/conntrack.html")
+		).
+		ParseFS(assets.TemplateFS, "template/base.html", "template/conntrack.html")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to parse conntrack template")
 	}
@@ -160,7 +161,8 @@ func (s *Server) Conntrack() AppHandler {
 		}
 	}
 
-	var conntrackMu sync.Mutex // limit to avoid abuse
+	var conntrackMu sync.Mutex // limit to a single concurrent to deter abuse
+
 	return func(w http.ResponseWriter, r *http.Request) error {
 		conntrackMu.Lock()
 		defer conntrackMu.Unlock()

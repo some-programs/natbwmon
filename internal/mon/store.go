@@ -12,6 +12,8 @@ import (
 	"github.com/some-programs/natbwmon/internal/log"
 )
 
+// Client represent a device on the network, a client is tracked by it's IP
+// address.
 type Client struct {
 	in        *counter
 	out       *counter
@@ -99,7 +101,7 @@ func (c *Client) UpdateName(name string) {
 // Clients hold the recorded data of all known clients data.
 //
 // Access to the data is protected by a single mutex because it is expected
-// that it is enough for this use case.
+// that it is more than enough for this use case.
 type Clients struct {
 	cs map[string]*Client
 	mu sync.Mutex
