@@ -17,10 +17,13 @@ type AppHandler func(http.ResponseWriter, *http.Request) error
 func (fn AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rw := &responseWriter{ResponseWriter: w}
 	if err := fn(rw, r); err != nil {
-		if !rw.hasWritten {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+		if rw.hasWritten {
+			logger := log.FromRequest(r)
+			logger.Warn().Err(err).Msg("error returned to AppHandler after respose has been written to")
+			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 	}
 }
 
