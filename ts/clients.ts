@@ -4,6 +4,7 @@ interface Row {
   out_rate: number;
   name: string;
   ip: string;
+  manufacturer: string;
 }
 
 var orderBy = "ip";
@@ -23,16 +24,9 @@ const fmtRate = function (bytes: number, decimals = 2): string {
   return `${v} ${sizes[i]}/s`;
 };
 
-const hwaddrPrefix = (hwaddr: string) => {
-  if (!hwaddr) {
-    return "";
-  }
-  return hwaddr.substring(0, 8);
-};
-
 const updateData = async () => {
   const resp = await fetch(`/v1/stats/?order_by=${orderBy}`);
-  const data = await resp.json();
+  const data: Array<Row> = await resp.json();
 
   const el = document.createElement("tbody");
   const header = document.createElement("tr");
@@ -66,7 +60,7 @@ const updateData = async () => {
 
 updateData();
 
-const t = setInterval(async function () {
+setInterval(async function () {
   if (document.getSelection()?.type !== "Range") {
     if (!document.hidden) {
       await updateData();
