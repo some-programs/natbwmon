@@ -16,6 +16,8 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )
 
+require github.com/BurntSushi/toml v1.2.0 // indirect
+
 require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/josharian/native v1.0.0 // indirect
@@ -28,11 +30,10 @@ require (
 	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/onsi/gomega v1.16.0 // indirect
-	github.com/peterbourgon/ff/v3 v3.1.2
+	github.com/peterbourgon/ff/v3 v3.3.0
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.4.0 // indirect
-	golang.org/x/net v0.0.0-20220726230323-06994584191e // indirect
+	golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48 // indirect
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
-	golang.org/x/sys v0.0.0-20220727055044-e65921a090b8 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect
 )
