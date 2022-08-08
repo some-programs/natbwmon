@@ -11,14 +11,14 @@ require (
 	github.com/justinas/alice v1.2.0
 	github.com/matryer/is v1.4.0
 	github.com/mxmCherry/movavg v1.1.0
+	github.com/peterbourgon/ff/v3 v3.3.0
 	github.com/rs/zerolog v1.27.0
 	github.com/tomruk/oui v1.0.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )
 
-require github.com/BurntSushi/toml v1.2.0 // indirect
-
 require (
+	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/josharian/native v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
@@ -30,7 +30,6 @@ require (
 	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/onsi/gomega v1.16.0 // indirect
-	github.com/peterbourgon/ff/v3 v3.3.0
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.4.0 // indirect
 	golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48 // indirect
