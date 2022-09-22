@@ -3,6 +3,7 @@ package arp
 import (
 	"bytes"
 	_ "embed"
+	"runtime"
 	"testing"
 
 	"github.com/matryer/is"
@@ -34,4 +35,20 @@ func TestParse(t *testing.T) {
 		is.Equal(err.Error(), "line contains less than 6 rows: '192.168.4.145    0x1         0x2         38:c9:86:2c:2f:97     *'")
 		is.Equal(0, len(vs))
 	})
+}
+
+func TestGet(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("only test on linux")
+
+		entries, err := Get()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// simply assume that the arp list is never empty
+		if len(entries) < 1 {
+			t.Fatal("expected at least one arp entry")
+		}
+	}
 }
