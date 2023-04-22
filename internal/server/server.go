@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -293,7 +294,9 @@ func (s *Server) StatsV1() AppHandler {
 // NmapV0 runs a predefined nmap qiery against a single IP address.
 func (s *Server) NmapV0() AppHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		logger := log.FromRequest(r)
+		ctx, cancel := context.WithTimeout(r.Context(), 15*time.Minute)
+		defer cancel()
+		logger := log.Ctx(ctx)
 		ipStr := r.URL.Query().Get("ip")
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
@@ -303,7 +306,6 @@ func (s *Server) NmapV0() AppHandler {
 		}
 		w.Header().Set("Content-Type", "text/event-stream")
 
-		ctx := r.Context()
 		cmd := exec.CommandContext(ctx, "nmap", "-v", "-A", "-T4", ip.String())
 		w.Write([]byte(fmt.Sprintf("running: %s\n", strings.Join(cmd.Args, " "))))
 		cmd.Stdout = w
