@@ -27,6 +27,11 @@
   anyone can access. I have no idea how it performs on a network with hundreds
   or thousands of clients. It might or might not work well at larger scale use cases.
 
+## non goals
+
+- This is a purley personal project and I don't see why anyone would use it in
+  a professional settings so no or very few tests are written.
+
 
 ## how to use
 
