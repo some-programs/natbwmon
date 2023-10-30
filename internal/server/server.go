@@ -313,6 +313,8 @@ func (s *Server) NmapV0() AppHandler {
 		err := cmd.Run()
 		if err != nil {
 			logger.Error().Err(err).Str("ip", ipStr).Msg("nmap failed")
+			w.Write([]byte(err.Error()))
+			w.Write([]byte("\n"))
 			return nil
 		}
 		w.Write([]byte("\n nmap successful exit"))
