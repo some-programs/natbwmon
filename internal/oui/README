@@ -1,0 +1,2 @@
+This is vendored version of https://github.com/tomruk/oui with fix applied
+for loading newer wireshark oui files https://github.com/tomruk/oui/pull/2

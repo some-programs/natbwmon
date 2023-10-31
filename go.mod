@@ -15,7 +15,6 @@ require (
 	github.com/mxmCherry/movavg v1.1.0
 	github.com/peterbourgon/ff/v3 v3.4.0
 	github.com/rs/zerolog v1.31.0
-	github.com/tomruk/oui v1.0.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 

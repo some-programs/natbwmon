@@ -20,8 +20,8 @@ import (
 	"github.com/some-programs/natbwmon/internal/arp"
 	"github.com/some-programs/natbwmon/internal/log"
 	"github.com/some-programs/natbwmon/internal/mon"
+	"github.com/some-programs/natbwmon/internal/oui"
 	"github.com/some-programs/natbwmon/internal/server"
-	"github.com/tomruk/oui"
 )
 
 // Flags contains the top level program configuration.
