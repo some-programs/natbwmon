@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-const ouiReStr = `^(\S+)\s*\t+(\S+)(\s+#\s+(\S.*))?`
+const ouiReStr = `^(\S+)\s*\t+(\S+)\s*\t+(.[^#]+)$`
 
 var ErrInvalidMACAddress = errors.New("invalid MAC address")
 
@@ -62,9 +62,10 @@ type addressBlock interface {
 
 // oui, mask, organization
 type addressBlock24 struct {
-	oui          [3]byte
-	mask         byte
-	organization [8]byte
+	oui  [3]byte
+	mask byte
+	// organization [8]byte
+	organization string
 }
 
 func (a *addressBlock24) Uint64OUI() uint64 {
@@ -76,7 +77,8 @@ func (a *addressBlock24) Uint64Mask() uint64 {
 }
 
 func (a *addressBlock24) Organization() string {
-	return strings.TrimSpace(string(a.organization[:]))
+	// return strings.TrimSpace(string(a.organization[:]))
+	return a.organization
 }
 
 type addressBlocks24 []addressBlock24
@@ -115,9 +117,10 @@ func (bs addressBlocks24) Search(addr uint64, i, j int) addressBlock {
 }
 
 type addressBlock48 struct {
-	oui          [6]byte
-	mask         byte
-	organization [8]byte
+	oui  [6]byte
+	mask byte
+	// organization [8]byte
+	organization string
 }
 
 func (a *addressBlock48) Uint64OUI() uint64 {
@@ -129,7 +132,8 @@ func (a *addressBlock48) Uint64Mask() uint64 {
 }
 
 func (a *addressBlock48) Organization() string {
-	return strings.TrimSpace(string(a.organization[:]))
+	// return strings.TrimSpace(string(a.organization[:]))
+	return a.organization
 }
 
 type addressBlocks48 []addressBlock48
@@ -195,6 +199,7 @@ func (db *DB) load(file io.Reader) (err error) {
 		}
 		addr := fields[0][1]
 		org := fields[0][2] + "        "
+		organization := strings.TrimSpace(fields[0][3])
 
 		switch org[:8] {
 		case "IeeeRegi", "Spanning":
@@ -218,18 +223,18 @@ func (db *DB) load(file io.Reader) (err error) {
 			}
 		}
 
-		var orgbytes [8]byte
-		copy(orgbytes[:], org)
+		// var orgbytes [8]byte
+		// copy(orgbytes[:], org)
 
 		if mask > 24 {
-			block := addressBlock48{oui, uint8(mask), orgbytes}
+			block := addressBlock48{oui, uint8(mask), organization}
 			db.blocks48 = append(db.blocks48, block)
 		} else {
 			var o [3]byte
 			o[0] = oui[0]
 			o[1] = oui[1]
 			o[2] = oui[2]
-			block := addressBlock24{o, uint8(mask), orgbytes}
+			block := addressBlock24{o, uint8(mask), organization}
 			db.blocks24 = append(db.blocks24, block)
 		}
 	}

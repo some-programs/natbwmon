@@ -1,2 +1,5 @@
 This is vendored version of https://github.com/tomruk/oui with fix applied
 for loading newer wireshark oui files https://github.com/tomruk/oui/pull/2
+
+The code is now also modified to return the long organization name so it has
+diverged from upstream.
