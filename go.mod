@@ -1,8 +1,8 @@
 module github.com/some-programs/natbwmon
 
-go 1.21
+go 1.22
 
-toolchain go1.21.3
+toolchain go1.22.0
 
 require (
 	github.com/benbjohnson/hashfs v0.2.1
@@ -14,7 +14,7 @@ require (
 	github.com/matryer/is v1.4.0
 	github.com/mxmCherry/movavg v1.1.0
 	github.com/peterbourgon/ff/v3 v3.4.0
-	github.com/rs/zerolog v1.31.0
+	github.com/rs/zerolog v1.32.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
@@ -30,9 +30,9 @@ require (
 	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/onsi/gomega v1.16.0 // indirect
-	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/xid v1.5.0 // indirect
-	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 )
