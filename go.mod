@@ -1,8 +1,8 @@
 module github.com/some-programs/natbwmon
 
-go 1.23.4
+go 1.24
 
-toolchain go1.24.0
+toolchain go1.24.3
 
 require (
 	github.com/benbjohnson/hashfs v0.2.2

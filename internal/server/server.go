@@ -307,7 +307,7 @@ func (s *Server) NmapV0() AppHandler {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		cmd := exec.CommandContext(ctx, "nmap", "-v", "-A", "-T4", ip.String())
-		w.Write([]byte(fmt.Sprintf("running: %s\n", strings.Join(cmd.Args, " "))))
+		w.Write(fmt.Appendf(nil, "running: %s\n", strings.Join(cmd.Args, " ")))
 		cmd.Stdout = w
 		cmd.Stderr = w
 		err := cmd.Run()
