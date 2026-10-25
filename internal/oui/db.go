@@ -209,16 +209,16 @@ func (db *DB) load(file io.Reader) (err error) {
 		var oui [6]byte
 		var mask int
 
-		if i := strings.IndexByte(addr, '/'); i < 0 {
+		if before, after, ok := strings.Cut(addr, "/"); !ok {
 			if oui, err = parseMAC(addr); err != nil {
 				continue
 			}
 			mask = (len(addr) + 1) / 3 * 8
 		} else {
-			if oui, err = parseMAC(addr[:i]); err != nil {
+			if oui, err = parseMAC(before); err != nil {
 				continue
 			}
-			if mask, err = strconv.Atoi(addr[i+1:]); err != nil {
+			if mask, err = strconv.Atoi(after); err != nil {
 				continue
 			}
 		}

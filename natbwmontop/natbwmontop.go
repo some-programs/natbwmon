@@ -3,21 +3,22 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
-	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
+	"charm.land/lipgloss/v2/table"
 	"github.com/peterbourgon/ff/v3"
 	"github.com/some-programs/natbwmon/internal/clientstats"
 )
+
+const pollInterval = 200 * time.Millisecond
 
 func readStats(ctx context.Context, baseurl string) (clientstats.Stats, error) {
 	url := fmt.Sprintf("%s/v1/stats/", baseurl)
@@ -25,29 +26,144 @@ func readStats(ctx context.Context, baseurl string) (clientstats.Stats, error) {
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 	var stats clientstats.Stats
 	err = json.Unmarshal(data, &stats)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
 	return stats, nil
+}
+
+type tickMsg struct{}
+
+type statsMsg clientstats.Stats
+
+type errMsg struct{ err error }
+
+var headers = []string{"ip (i)", "rx rate (r)", "tx rate (t)", "name (n)", "hwaddr (h)"}
+
+type model struct {
+	baseURL string
+	orderBy string
+	stats   clientstats.Stats
+	err     error
+	height  int
+	// colWidths only ever grow so the columns don't jump around as rates change.
+	colWidths []int
+}
+
+func newModel(baseURL string) model {
+	m := model{
+		baseURL:   baseURL,
+		orderBy:   "n",
+		colWidths: make([]int, len(headers)),
+	}
+	m.growColWidths(headers)
+	return m
+}
+
+func (m model) Init() tea.Cmd {
+	return m.fetch
+}
+
+func (m model) fetch() tea.Msg {
+	stats, err := readStats(context.Background(), m.baseURL)
+	if err != nil {
+		return errMsg{err}
+	}
+	return statsMsg(stats)
+}
+
+func tick() tea.Cmd {
+	return tea.Tick(pollInterval, func(time.Time) tea.Msg { return tickMsg{} })
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		switch k := msg.String(); k {
+		case "q", "ctrl+c", "esc":
+			return m, tea.Quit
+		case "r", "t", "h", "n", "i":
+			m.orderBy = k
+			m.sort()
+		}
+	case tea.WindowSizeMsg:
+		m.height = msg.Height
+	case tickMsg:
+		return m, m.fetch
+	case statsMsg:
+		m.stats = clientstats.Stats(msg)
+		m.sort()
+		for _, v := range m.stats {
+			m.growColWidths(row(v))
+		}
+		return m, tick()
+	case errMsg:
+		m.err = msg.err
+		return m, tea.Quit
+	}
+	return m, nil
+}
+
+func (m *model) sort() {
+	switch m.orderBy {
+	case "r":
+		m.stats.OrderByInRate()
+	case "t":
+		m.stats.OrderByOutRate()
+	case "h":
+		m.stats.OrderByHWAddr()
+	case "n":
+		m.stats.OrderByName()
+	default:
+		m.stats.OrderByIP()
+	}
+}
+
+func (m *model) growColWidths(row []string) {
+	for idx, v := range row {
+		// +2 for horizontal padding
+		if l := lipgloss.Width(v) + 2; m.colWidths[idx] < l {
+			m.colWidths[idx] = l
+		}
+	}
+}
+
+func row(s clientstats.Stat) []string {
+	return []string{s.IP, s.InFmt(), s.OutFmt(), s.Name, s.HWAddr}
+}
+
+func (m model) View() tea.View {
+	t := table.New().
+		Border(lipgloss.NormalBorder()).
+		Headers(headers...).
+		StyleFunc(func(_, col int) lipgloss.Style {
+			return lipgloss.NewStyle().Padding(0, 1).Width(m.colWidths[col])
+		})
+	if m.height > 0 {
+		t.Height(m.height)
+	}
+	for _, v := range m.stats {
+		t.Row(row(v)...)
+	}
+	v := tea.NewView(t.Render())
+	v.AltScreen = true
+	v.WindowTitle = "natbwmontop"
+	return v
 }
 
 func main() {
@@ -59,105 +175,13 @@ func main() {
 		ff.WithEnvVarPrefix("NATBWMONTOP"),
 	)
 
-	if err := ui.Init(); err != nil {
-		log.Fatalf("failed to initialize termui: %v", err)
+	m, err := tea.NewProgram(newModel(baseURL), tea.WithFPS(30)).Run()
+	if err != nil && !errors.Is(err, tea.ErrInterrupted) {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	errCh := make(chan error, 1)
-
-	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		defer signal.Stop(c)
-
-		select {
-		case <-ctx.Done():
-		case <-c:
-			cancel()
-		}
-	}()
-
-	defer ui.Close()
-	table := widgets.NewTable()
-	table.TextStyle = ui.StyleClear
-	table.BorderStyle = ui.StyleClear
-	w, h := ui.TerminalDimensions()
-	table.SetRect(0, 0, w, h)
-	table.RowSeparator = false
-	table.ColumnWidths = []int{5, 5, 5, 5, 5}
-
-	statsCh := make(chan clientstats.Stats)
-
-	go func(ctx context.Context) {
-		ticker := time.NewTicker(200 * time.Millisecond)
-		for {
-			select {
-			case <-ticker.C:
-				stats, err := readStats(ctx, baseURL)
-				if err != nil {
-					errCh <- err
-					return
-				}
-				statsCh <- stats
-			case <-ctx.Done():
-				return
-			}
-		}
-	}(ctx)
-
-	uiEvents := ui.PollEvents()
-	orderBy := "n"
-loop:
-	for {
-		select {
-		case e := <-uiEvents:
-			switch e.ID {
-			case "q", "<C-c>", "<Escape>":
-				break loop
-
-			case "r", "t", "h", "n", "i":
-				orderBy = e.ID
-			case "<Resize>":
-				payload := e.Payload.(ui.Resize)
-				table.SetRect(0, 0, payload.Width, payload.Height)
-				ui.Clear()
-				ui.Render(table)
-			}
-		case stats := <-statsCh:
-			switch orderBy {
-			case "r":
-				stats.OrderByInRate()
-			case "t":
-				stats.OrderByOutRate()
-			case "h":
-				stats.OrderByHWAddr()
-			case "n":
-				stats.OrderByName()
-			default:
-				stats.OrderByIP()
-			}
-			var rows [][]string
-			rows = append(rows, []string{"ip (i)", "rx rate (r)", "tx rate (t)", "name (n)", "hwaddr (h)"})
-			for _, v := range stats {
-				row := []string{v.IP, v.InFmt(), v.OutFmt(), v.Name, v.HWAddr}
-				rows = append(rows, row)
-				for idx, v := range row {
-					l := len(v) + 2
-					if table.ColumnWidths[idx] < l {
-						table.ColumnWidths[idx] = l
-					}
-				}
-			}
-			table.Rows = rows
-			ui.Render(table)
-		case <-ctx.Done():
-			break loop
-		case err := <-errCh:
-			ui.Clear()
-			ui.Close()
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	if m, ok := m.(model); ok && m.err != nil {
+		fmt.Println(m.err)
+		os.Exit(1)
 	}
 }

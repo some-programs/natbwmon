@@ -9,8 +9,7 @@ import (
 func ResolveHostname(ip string) (string, error) {
 	names, err := net.LookupAddr(ip)
 	if err != nil {
-		var e *net.DNSError
-		if errors.As(err, &e) {
+		if e, ok := errors.AsType[*net.DNSError](err); ok {
 			if !e.IsNotFound {
 				return "", err
 			}

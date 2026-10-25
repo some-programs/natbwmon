@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -136,8 +137,8 @@ func (s *Server) Conntrack() AppHandler {
 	order := func(fs mon.FlowSlice, r *http.Request) {
 		q := r.URL.Query()
 		ords := q["o"]
-		for i := len(ords) - 1; i >= 0; i-- {
-			orderBy := ords[i]
+		for _, orderBy := range slices.Backward(ords) {
+
 			switch orderBy {
 			case "ttl":
 				fs.OrderByTTL()
